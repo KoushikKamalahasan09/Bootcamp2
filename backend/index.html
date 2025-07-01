@@ -2,49 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JS fetch test</title>
 </head>
 <body>
+
     <h1>Frontend</h1>
-    <p>Hello button</p>
-    <p id="messagehi">Loading...</p>
-    <button onclick="callAPI4MsgHi()">Load Message from Backend</button>
 
+    <!-- Container holding all three blocks side-by-side -->
+    <div style="width: 100%; text-align: center;">
 
-    <p>Bye button</p>
-    <p id="messagebye">Loading...</p>
-    <button onclick="callAPI4MsgBye()">Load Message from Backend</button>
+    <!-- Hi Section -->
+    <div style="display: inline-block; width: 30%; vertical-align: top; text-align: left;">
+        <p>Hello button</p>
+        <button onclick="callAPI4MsgHi()">Load Message from Backend</button>
+        <pre id="messagehi" style="font-family: inherit; display: block; margin-top: 10px; min-height: 80px;">Loading...</pre>
+    </div>
 
-    <p>Data button</p>
-    <p id="messagedata">Loading...</p>
-    <button onclick="callAPI4Msgdata()">Load Message from Backend</button>
+    <!-- Data Section -->
+    <div style="display: inline-block; width: 30%; vertical-align: top; text-align: center;">
+        <p>Data button</p>
+        <button onclick="callAPI4Msgdata()">Load Message from Backend</button>
+        <pre id="messagedata" style="font-family: inherit; display: block; margin-top: 10px; min-height: 80px; white-space: pre-wrap; word-wrap: break-word;">Loading...</pre>
+    </div>
+
+    <!-- Bye Section -->
+    <div style="display: inline-block; width: 30%; vertical-align: top; text-align: right;">
+        <p>Bye button</p>
+        <button onclick="callAPI4MsgBye()">Load Message from Backend</button>
+        <pre id="messagebye" style="font-family: inherit; display: block; margin-top: 10px; min-height: 80px;">Loading...</pre>
+    </div>
+
+</div>
+
 
     <script>
         function callAPI4MsgHi() {
             fetch('http://127.0.0.1:5000/flaskrestful/Hi')
-            .then(response => response.json())
-            .then(data => {
-                console.log("data received from backend: ",data)
-                document.getElementById('messagehi').innerText = data.messagehi
-            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('messagehi').innerText = data.messagehi
+                });
         }
+
         function callAPI4MsgBye() {
             fetch('http://127.0.0.1:5000/flaskrestful/Bye')
-            .then(response => response.json())
-            .then(data => {
-                console.log("data received from backend: ",data)
-                document.getElementById('messagebye').innerText = data.messagebye
-            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('messagebye').innerText = data.messagebye
+                });
         }
 
         function callAPI4Msgdata() {
             fetch('http://127.0.0.1:5000/data')
-            .then(response => response.json())
-            .then(data => {
-                console.log("data received from backend: ",data)
-                document.getElementById('messagedata').innerText = `${data.name}\n ${data.project}\n${data.status}\n${data.version}`
-            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('messagedata').innerText =
+                        `${data.name}\n${data.project}\n${data.status}\n${data.version}`;
+                });
         }
     </script>
 
