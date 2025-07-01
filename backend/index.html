@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS fetch test</title>
+</head>
+<body>
+    <h1>Frontend</h1>
+
+    <p id="message">Loading...</p>
+    <button onclick="callAPI4Msg()">Load Message from Backend</button>
+
+    <script>
+        function callAPI4Msg() {
+            fetch('http://127.0.0.1:5000/flaskrestful')
+            .then(response => response.json())
+            .then(data => {
+                console.log("data received from backend: ",data)
+                document.getElementById('message').innerText = data.message
+            })
+        }
+    </script>
+
+</body>
+</html>
