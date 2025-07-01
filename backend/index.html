@@ -7,17 +7,43 @@
 </head>
 <body>
     <h1>Frontend</h1>
+    <p>Hello button</p>
+    <p id="messagehi">Loading...</p>
+    <button onclick="callAPI4MsgHi()">Load Message from Backend</button>
 
-    <p id="message">Loading...</p>
-    <button onclick="callAPI4Msg()">Load Message from Backend</button>
+
+    <p>Bye button</p>
+    <p id="messagebye">Loading...</p>
+    <button onclick="callAPI4MsgBye()">Load Message from Backend</button>
+
+    <p>Data button</p>
+    <p id="messagedata">Loading...</p>
+    <button onclick="callAPI4Msgdata()">Load Message from Backend</button>
 
     <script>
-        function callAPI4Msg() {
-            fetch('http://127.0.0.1:5000/flaskrestful')
+        function callAPI4MsgHi() {
+            fetch('http://127.0.0.1:5000/flaskrestful/Hi')
             .then(response => response.json())
             .then(data => {
                 console.log("data received from backend: ",data)
-                document.getElementById('message').innerText = data.message
+                document.getElementById('messagehi').innerText = data.messagehi
+            })
+        }
+        function callAPI4MsgBye() {
+            fetch('http://127.0.0.1:5000/flaskrestful/Bye')
+            .then(response => response.json())
+            .then(data => {
+                console.log("data received from backend: ",data)
+                document.getElementById('messagebye').innerText = data.messagebye
+            })
+        }
+
+        function callAPI4Msgdata() {
+            fetch('http://127.0.0.1:5000/data')
+            .then(response => response.json())
+            .then(data => {
+                console.log("data received from backend: ",data)
+                document.getElementById('messagedata').innerText = `${data.name}\n ${data.project}\n${data.status}\n${data.version}`
             })
         }
     </script>

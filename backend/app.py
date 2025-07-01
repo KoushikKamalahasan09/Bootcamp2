@@ -12,10 +12,25 @@ CORS(app)
 # flask-restful
 class HelloWorld(Resource):
     def get(self):
-        return {"message": "bye user!"} #JSON Object
+        return {"messagehi": "Hi user!"} #JSON Object
     
-api.add_resource(HelloWorld, '/flaskrestful')
+class ByeWorld(Resource):
+    def get(self):
+        return {"messagebye":"Bye user!"} #JSON Object
+    
+class data(Resource):
+    def get(self):
+        return {
+            "name": "test",
+            "project": "Flask + JS API Test",
+            "status": "In Progress",
+            "version": 1.0
+        }
 
+    
+api.add_resource(HelloWorld, '/flaskrestful/Hi')
+api.add_resource(ByeWorld, '/flaskrestful/Bye')
+api.add_resource(data, '/data')
 
 if __name__ == "__main__":
     app.run(debug=True)
