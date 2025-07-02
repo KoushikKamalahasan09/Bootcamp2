@@ -1,57 +1,76 @@
 from flask_restful import Resource, Api
 from flask import request
 
-from models import db, User,ParkingLot#, ParkingSpot, Reservation
+from models import db, User,ParkingLot, ParkingSpot, Reservation
 
-'''class UsersResource(Resource):
+class UsersResource(Resource):
     
     def get(self, user_id=None):
         if user_id:
-            user = Users.query.get(user_id)
+            user = User.query.get(user_id)
             if user:
-                return {'msg': "user found", 'email': user.email, 'name': user.name}
+                return {'msg': "user found", 'Username': user.username, 'email': user.email, 'Admin?': user.is_admin}
             return {'msg': "User not found!"}, 404
-        users = Users.query.all()
-        users = [{'email': user.email, 'name': user.name} for user in users]
+        users = User.query.all()
+        users = [{'Username': user.username, 'email': user.email, 'Admin?': user.is_admin} for user in users]
         return {"msg": "All users", "users": users}
     
     def post(self):
         data = request.get_json()
+        username = data.get('username', None)
         email = data.get('email', None)
-        name = data.get('name', None)
-        if not email or not name:
+        passhash = data.get('password', None)
+        if not email or not username or not passhash:
             return {'msg': "Please provide all required information!"}, 400
-        user = Users.query.get(email)
+        user = User.query.filter_by(email=email).first()
         if user:
             return {'msg': "User already exists!"}, 400
-        user = Users(email=email, name=name)
+        user = User(email=email, username=username, passhash=passhash, is_admin=False)
         db.session.add(user); db.session.commit()
         return {'msg': "Successfully created user!"}
     
     def put(self, user_id=None):
         if not user_id:
-            return {'msg': "User email is required to update!"}, 400
-        user = Users.query.get(user_id)
+            return {'msg': "User id is required to update!"}, 400
+        user = User.query.get(user_id)
         if not user:
             return {'msg': "User not exists to update!"}, 404
         data = request.get_json()
-        name = data.get('name', None)
-        if not name:
-            return {'msg': "Please provide all required information!"}, 400
-        user.name = name
+        if not data:
+            return {'msg': "No data provided for update!"}, 400
+        
+        
+
+        # Update only the fields that are present in the request
+        if 'email' in data:
+            if User.query.filter_by(email=data['email']).first() and data['email'] != user.email:
+                return {'msg': "Email already exists!"}, 400
+            user.email = data['email']
+        if 'username' in data:
+            if User.query.filter_by(username=data['username']).first() and data['username'] != user.username:
+                return {'msg': "Username already exists!"}, 400
+            user.username = data['username']
+        
         db.session.commit()
-        user = {'email': user.email, 'name': user.name}
-        return {'msg': "User information updated!", 'user': user}, 200
+        return {
+            'msg': "User information updated!",
+            'user': {
+                'Username': user.username,
+                'email': user.email,
+                'Admin?': user.is_admin
+            }
+        }, 200
+
     
     def delete(self, user_id=None):
         if not user_id:
             return {'msg': "User email is required to delete!"}, 400
-        user = Users.query.get(user_id)
+        user = User.query.get(user_id)
         if not user:
             return {'msg': "User not exists to delete!"}, 404
         db.session.delete(user)
         db.session.commit()
-        return {'msg': "User has been delete!"}, 200'''
+        return {'msg': "User has been delete!"}, 200
     
 class Parkinglots(Resource):
     
@@ -126,3 +145,145 @@ class Parkinglots(Resource):
         db.session.delete(lot)
         db.session.commit()
         return {'msg': "Parking lot has been deleted!"}, 200
+    
+class ParkingSpots(Resource):
+    def get(self, spot_id=None):
+        if spot_id:
+            spot = ParkingSpot.query.get(spot_id)
+            if spot:
+                return {
+                    'msg': "Spot found",
+                    'Spot Number': spot.spot_number,
+                    'Available?': spot.is_avail,
+                    'Lot ID': spot.lot_id
+                }
+            return {'msg': "Spot not found"}, 404
+
+        spots = ParkingSpot.query.all()
+        result = [{
+            'Spot Number': s.spot_number,
+            'Available?': s.is_avail,
+            'Lot ID': s.lot_id
+        } for s in spots]
+        return {'msg': "All spots", 'spots': result}, 200
+
+    def post(self):
+        data = request.get_json()
+        lot_id = data.get('lot_id')
+        spot_number = data.get('spot_number')
+        if not lot_id or not spot_number:
+            return {'msg': "Missing spot number or lot ID"}, 400
+
+        spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
+        db.session.add(spot)
+        db.session.commit()
+        return {'msg': "Parking spot created!"}, 201
+
+    def put(self, spot_id=None):
+        if not spot_id:
+            return {'msg': "Spot ID required"}, 400
+        spot = ParkingSpot.query.get(spot_id)
+        if not spot:
+            return {'msg': "Spot not found"}, 404
+
+        data = request.get_json()
+        if 'is_avail' in data:
+            spot.is_avail = data['is_avail']
+        if 'spot_number' in data:
+            spot.spot_number = data['spot_number']
+        if 'lot_id' in data:
+            spot.lot_id = data['lot_id']
+
+        db.session.commit()
+        return {'msg': "Spot updated!"}, 200
+
+    def delete(self, spot_id=None):
+        if not spot_id:
+            return {'msg': "Spot ID required"}, 400
+        spot = ParkingSpot.query.get(spot_id)
+        if not spot:
+            return {'msg': "Spot not found"}, 404
+
+        db.session.delete(spot)
+        db.session.commit()
+        return {'msg': "Spot deleted!"}, 200
+
+class Reservations(Resource):
+    def get(self, reservation_id=None):
+        if reservation_id:
+            r = Reservation.query.get(reservation_id)
+            if not r:
+                return {'msg': "Reservation not found"}, 404
+            return {
+                'msg': "Reservation found",
+                'User ID': r.user_id,
+                'Spot ID': r.spot_id,
+                'From': str(r.parking_timestamp),
+                'To': str(r.leaving_timestamp),
+                'Cost': r.parking_cost,
+                'Active?': r.is_active
+            }
+
+        reservations = Reservation.query.all()
+        data = [{
+            'User ID': r.user_id,
+            'Spot ID': r.spot_id,
+            'From': str(r.parking_timestamp),
+            'To': str(r.leaving_timestamp),
+            'Cost': r.parking_cost,
+            'Active?': r.is_active
+        } for r in reservations]
+        return {'msg': "All reservations", 'reservations': data}
+
+    def post(self):
+        data = request.get_json()
+        user_id = data.get('user_id')
+        spot_id = data.get('spot_id')
+        leaving_timestamp = data.get('leaving_timestamp')
+
+        if not user_id or not spot_id:
+            return {'msg': "Missing user_id or spot_id"}, 400
+
+        spot = ParkingSpot.query.get(spot_id)
+        if not spot or not spot.is_avail:
+            return {'msg': "Spot not available"}, 400
+
+        reservation = Reservation(
+            user_id=user_id,
+            spot_id=spot_id,
+            leaving_timestamp=leaving_timestamp,
+            parking_cost=0.0  # you can calculate based on duration
+        )
+        spot.is_avail = False  # mark as unavailable
+
+        db.session.add(reservation)
+        db.session.commit()
+        return {'msg': "Reservation created!"}, 201
+
+    def put(self, reservation_id=None):
+        if not reservation_id:
+            return {'msg': "Reservation ID is required"}, 400
+        r = Reservation.query.get(reservation_id)
+        if not r:
+            return {'msg': "Reservation not found"}, 404
+
+        data = request.get_json()
+        if 'leaving_timestamp' in data:
+            r.leaving_timestamp = data['leaving_timestamp']
+        if 'parking_cost' in data:
+            r.parking_cost = data['parking_cost']
+        if 'is_active' in data:
+            r.is_active = data['is_active']
+
+        db.session.commit()
+        return {'msg': "Reservation updated!"}, 200
+
+    def delete(self, reservation_id=None):
+        if not reservation_id:
+            return {'msg': "Reservation ID required"}, 400
+        r = Reservation.query.get(reservation_id)
+        if not r:
+            return {'msg': "Reservation not found"}, 404
+        db.session.delete(r)
+        db.session.commit()
+        return {'msg': "Reservation deleted!"}, 200
