@@ -13,14 +13,17 @@ CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app_database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'c5faf247641cfc78c25d4b2ccd1bb07d079cbe3a31310aed98cbb4c62b4cc003'
 
 db.init_app(app)
 
 # connecting api resources to endpoints
-from controllers import Parkinglots,UsersResource
+from controllers import Parkinglots,UsersResource,ParkingSpots,Reservations
 
 api.add_resource(Parkinglots, '/lots', '/lots/<lot_id>')
 api.add_resource(UsersResource, '/users', '/users/<user_id>')
+api.add_resource(ParkingSpots, '/spots', '/spots/<spot_id>')
+api.add_resource(Reservations, '/reservations', '/reservations/<reservation_id>')
 
 
 
