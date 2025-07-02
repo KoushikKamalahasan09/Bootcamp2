@@ -9,10 +9,10 @@ class UsersResource(Resource):
         if user_id:
             user = User.query.get(user_id)
             if user:
-                return {'msg': "user found", 'Username': user.username, 'email': user.email, 'Admin?': user.is_admin}
+                return {'msg': "user found", 'user': user.to_dict()}
             return {'msg': "User not found!"}, 404
         users = User.query.all()
-        users = [{'Username': user.username, 'email': user.email, 'Admin?': user.is_admin} for user in users]
+        users = [user.to_dict() for user in User.query.all()]
         return {"msg": "All users", "users": users}
     
     def post(self):
