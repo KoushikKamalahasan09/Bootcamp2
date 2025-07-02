@@ -10,7 +10,7 @@ class User(db.Model):
     __tablename__ = 'users'
     
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     passhash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -23,7 +23,7 @@ class ParkingLot(db.Model):
     __tablename__ = 'parking_lots'
     
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     location_name = db.Column(db.String(100), nullable=False)
     price_per_hour = db.Column(db.Float, nullable=False)
     address = db.Column(db.String(200), nullable=False)
@@ -37,7 +37,7 @@ class ParkingLot(db.Model):
     __tablename__ = 'parking_spots'
     
     
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     lot_id = db.Column(db.Integer, db.ForeignKey('parking_lot.id'), nullable=False)
     is_avail = db.Column(db.Boolean, default=True, nullable=False)
     spot_number = db.Column(db.String(10), nullable=False)
@@ -50,7 +50,7 @@ class Reservation(db.Model):
 
 
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     spot_id = db.Column(db.Integer, db.ForeignKey('parking_spot.id'), nullable=False)
     parking_timestamp = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
