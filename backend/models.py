@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timezone
-from app import app
 from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy()
@@ -16,7 +15,7 @@ class User(db.Model):
     passhash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
-    reservations = db.relationship('Reservation', backref='user', lazy=True)
+    #reservations = db.relationship('Reservation', backref='user', lazy=True)
 
 # Parking lot model
 class ParkingLot(db.Model):
@@ -25,15 +24,15 @@ class ParkingLot(db.Model):
     
     
     id = db.Column(db.Integer, primary_key=True)
-    prime_location_name = db.Column(db.String(100), nullable=False)
+    location_name = db.Column(db.String(100), nullable=False)
     price_per_hour = db.Column(db.Float, nullable=False)
     address = db.Column(db.String(200), nullable=False)
     pin_code = db.Column(db.String(10), nullable=False)
     number_of_spots = db.Column(db.Integer, nullable=False)
-    spots = db.relationship('ParkingSpot', backref='lot', cascade="all, delete-orphan", lazy=True)
+    #spots = db.relationship('ParkingSpot', backref='lot', cascade="all, delete-orphan", lazy=True)
 
 # Parking spot model
-class ParkingSpot(db.Model):
+'''class ParkingSpot(db.Model):
     
     __tablename__ = 'parking_spots'
     
@@ -61,12 +60,4 @@ class Reservation(db.Model):
     created_at= db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc))
 
-
-with app.app_context():
-    db.create_all()  # Create tables if they don't exist
-    admin=User.query.filter_by(is_admin=True).first()
-    if not admin:
-        passhash=generate_password_hash('admin')
-        admin = User(username='admin', passhash=passhash, email='admin@example.com', is_admin=True)
-        db.session.add(admin)
-        db.session.commit()
+'''

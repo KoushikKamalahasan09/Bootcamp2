@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, render_template, request
 from flask_cors import CORS
 
 from flask_restful import Resource, Api
@@ -8,30 +8,21 @@ api = Api(app)
 
 CORS(app)
 
+# connecting database
+from models import db
 
-# flask-restful
-class HelloWorld(Resource):
-    def get(self):
-        return {"messagehi": "Hi user!"} #JSON Object
-    
-class ByeWorld(Resource):
-    def get(self):
-        return {"messagebye":"Bye user!"} #JSON Object
-    
-class data(Resource):
-    def get(self):
-        return {
-            "name": "test",
-            "project": "Flask + JS API Test",
-            "status": "In Progress",
-            "version": 1.0
-        }
-    
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app_database.db'
+db.init_app(app)
 
-    
-api.add_resource(HelloWorld, '/flaskrestful/Hi')
-api.add_resource(ByeWorld, '/flaskrestful/Bye')
-api.add_resource(data, '/data')
+# connecting api resources to endpoints
+from controllers import Parkinglots
+
+api.add_resource(Parkinglots, '/lots', '/lots/<lot_id>')
+
+
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+        app.run(debug=True)
