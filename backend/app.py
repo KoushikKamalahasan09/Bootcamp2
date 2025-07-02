@@ -26,6 +26,7 @@ class data(Resource):
             "status": "In Progress",
             "version": 1.0
         }
+    
 
     
 api.add_resource(HelloWorld, '/flaskrestful/Hi')
