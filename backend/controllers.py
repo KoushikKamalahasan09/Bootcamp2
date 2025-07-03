@@ -327,4 +327,6 @@ class LoginResource(Resource):
         token=create_access_token(identity=str(user.id))
         return {"msg": "Login successful",'token': token}, 200
         
+
+
         
