@@ -30,6 +30,7 @@ class UsersResource(Resource):
         db.session.add(user); db.session.commit()
         return {'msg': "Successfully created user!"}
     
+    @jwt_required()
     def put(self, user_id=None):
         if not user_id:
             return {'msg': "User id is required to update!"}, 400
@@ -62,7 +63,7 @@ class UsersResource(Resource):
             }
         }, 200
 
-    
+    @jwt_required()
     def delete(self, user_id=None):
         if not user_id:
             return {'msg': "User email is required to delete!"}, 400
@@ -75,7 +76,7 @@ class UsersResource(Resource):
     
 class Parkinglots(Resource):
     
-    
+    @jwt_required()
     def get(self,lot_id=None):
         if lot_id:
             lot = ParkingLot.query.get(lot_id)
@@ -86,7 +87,12 @@ class Parkinglots(Resource):
         lots = [{'Location': lot.location_name, 'Price per Hour': lot.price_per_hour, 'Address': lot.address, 'Pin Code': lot.pin_code, 'Number of Spots': lot.number_of_spots} for lot in lots]
         return {"msg": "All parking lots", "lots": lots}
     
+    @jwt_required()
     def post(self):
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin:
+            return {'msg': "You are not authorized to create parking lots!"}, 403
         data = request.get_json()
         location_name = data.get('location_name', None)
         price_per_hour = data.get('price_per_hour', None)
@@ -101,7 +107,12 @@ class Parkinglots(Resource):
         db.session.add(lot); db.session.commit()
         return {'msg': "Successfully created parking lot!"}
     
+    @jwt_required()
     def put(self, lot_id=None):
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin:
+            return {'msg': "You are not authorized to update parking lots!"}, 403
         if not lot_id:
             return {'msg': "Parking lot ID is required to update!"}, 400
         lot = ParkingLot.query.get(lot_id)
@@ -137,7 +148,12 @@ class Parkinglots(Resource):
             }
         }, 200
         
+    @jwt_required()
     def delete(self, lot_id=None):
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin:
+            return {'msg': "You are not authorized to delete parking lots!"}, 403
         if not lot_id:
             return {'msg': "Parking lot ID is required to delete!"}, 400
         lot = ParkingLot.query.get(lot_id)
@@ -148,6 +164,8 @@ class Parkinglots(Resource):
         return {'msg': "Parking lot has been deleted!"}, 200
     
 class ParkingSpots(Resource):
+    
+    @jwt_required()
     def get(self, spot_id=None):
         if spot_id:
             spot = ParkingSpot.query.get(spot_id)
@@ -168,7 +186,12 @@ class ParkingSpots(Resource):
         } for s in spots]
         return {'msg': "All spots", 'spots': result}, 200
 
+    @jwt_required()
     def post(self):
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin:
+            return {'msg': "You are not authorized to create parking spots!"}, 403
         data = request.get_json()
         lot_id = data.get('lot_id')
         spot_number = data.get('spot_number')
@@ -180,7 +203,12 @@ class ParkingSpots(Resource):
         db.session.commit()
         return {'msg': "Parking spot created!"}, 201
 
+    @jwt_required()
     def put(self, spot_id=None):
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin:
+            return {'msg': "You are not authorized to update parking spots!"}, 403
         if not spot_id:
             return {'msg': "Spot ID required"}, 400
         spot = ParkingSpot.query.get(spot_id)
@@ -198,7 +226,12 @@ class ParkingSpots(Resource):
         db.session.commit()
         return {'msg': "Spot updated!"}, 200
 
+    @jwt_required()
     def delete(self, spot_id=None):
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin:
+            return {'msg': "You are not authorized to delete parking spots!"}, 403
         if not spot_id:
             return {'msg': "Spot ID required"}, 400
         spot = ParkingSpot.query.get(spot_id)

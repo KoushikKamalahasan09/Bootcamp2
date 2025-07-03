@@ -44,7 +44,16 @@ if __name__ == "__main__":
         
         if not admin:
             admin = User(username='admin',passhash='admin123',email='admin@admin.com', is_admin=True)
+            User1=User(username='user1',passhash='user123',email='user1@user.com', is_admin=False)
+            User2=User(username='user2',passhash='user123',email='user2@user.com', is_admin=False)
+            User3=User(username='user3',passhash='user123',email='user3@user.com', is_admin=False)
+            User4=User(username='user4',passhash='user123',email='user4@user.com', is_admin=False)
+            
             db.session.add(admin)
+            db.session.add(User1)
+            db.session.add(User2)
+            db.session.add(User3)
+            db.session.add(User4)
             db.session.commit()
         
         app.run(debug=True)
