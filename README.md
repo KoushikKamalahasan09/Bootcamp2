@@ -2,6 +2,8 @@
 
 ## Backend Setup
 
+---
+
 ### Flask
 
 1. Navigate to the `backend` directory:
@@ -39,12 +41,17 @@
     ```bash
     deactivate
     ```
-    
+
+--- 
+   
 ### Redis
 
 
+---
+
 ### Celery
 
+---
 
 ### Mailhog
 
@@ -53,6 +60,22 @@
 
 ## Frontend Setup
 
-*(to be updated)*
+1. Navigate to the `frontend` directory:
+
+   ```bash
+   cd frontend
+   ```
+
+2. install node modules:
+
+   ```bash
+   npm install
+   ```
+
+3. run the vue app:
+
+   ```bash
+   npm run dev
+   ```
 
 ---
