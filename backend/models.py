@@ -62,6 +62,7 @@ class ParkingSpot(db.Model):
     is_avail = db.Column(db.Boolean, default=True, nullable=False)
     spot_number = db.Column(db.String(10), nullable=False)
     reservations = db.relationship('Reservation', backref='spot', lazy=True)
+    #lot = db.relationship('ParkingLot', backref='spots')
     
     def to_dict(self):
         return {

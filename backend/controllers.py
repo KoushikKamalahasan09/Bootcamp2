@@ -2,9 +2,10 @@ from flask_restful import Resource, Api
 from flask import request
 
 from models import db, User,ParkingLot, ParkingSpot, Reservation
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
 
 class UsersResource(Resource):
-    
+    @jwt_required()
     def get(self, user_id=None):
         if user_id:
             user = User.query.get(user_id)
@@ -214,23 +215,23 @@ class Reservations(Resource):
             r = Reservation.query.get(reservation_id)
             if not r:
                 return {'msg': "Reservation not found"}, 404
+            cost="In Progress" if r.leaving_timestamp is None else r.spot.lot.price_per_hour * round((r.leaving_timestamp - r.parking_timestamp).total_seconds() / 3600, 2)
             return {
                 'msg': "Reservation found",
                 'User ID': r.user_id,
                 'Spot ID': r.spot_id,
                 'From': str(r.parking_timestamp),
                 'To': str(r.leaving_timestamp),
-                'Cost': r.parking_cost,
+                'Cost': cost,
                 'Active?': r.is_active
             }
 
         reservations = Reservation.query.all()
         data = [{
-            'User ID': r.user_id,
+            'Username': r.user.username,
             'Spot ID': r.spot_id,
             'From': str(r.parking_timestamp),
             'To': str(r.leaving_timestamp),
-            'Cost': r.parking_cost,
             'Active?': r.is_active
         } for r in reservations]
         return {'msg': "All reservations", 'reservations': data}
@@ -287,3 +288,23 @@ class Reservations(Resource):
         db.session.delete(r)
         db.session.commit()
         return {'msg': "Reservation deleted!"}, 200
+
+
+class LoginResource(Resource):
+    def post(self):
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return {'msg': "Email and password are required"}, 400
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return {'msg': "User not found"}, 404
+        if user.passhash != password:
+            return {'msg': "Invalid password"}, 401
+        token=create_access_token(identity=str(user.id))
+        return {"msg": "Login successful",'token': token}, 200
+        
+        
