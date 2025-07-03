@@ -1,9 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import Loginview from '../views/Login.vue' // Import the Login view
-import RegisterView from '../views/Register.vue' // Import the Register view
-import adminDashboardView from '../views/Admin_dashboard.vue' // Import the Dashboard view
-import UserDashboardView from '../views/User_dashboard.vue' // Import the User Dashboard view
+import Login from '../views/Auth/login.vue' // Import the Login view
+import Register from '../views/Auth/register.vue' // Import the Register view
+import AdminDashboard from '../views/Admin/dashboard.vue'
+import AdminProfile from '../views/Admin/profile.vue'
+import UserDashboard from '../views/User/dashboard.vue'
+import UserProfile from '../views/User/profile.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,26 +19,42 @@ const router = createRouter({
     {
       path:'/login',
       name: 'login',
-      component: Loginview, 
+      component: Login, 
     },
     {
       path : '/register',
       name: 'register',
-      component: RegisterView,
+      component: Register,
+    },
+    {
+      path: '/admin/dashboard',
+      name: 'admin_dashboard',
+      component: AdminDashboard, // Admin Dashboard view
+    },
+    {
+      path:'/admin/profile',
+      name: 'admin_profile',
+      component: AdminProfile, // Admin Profile view
     },
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: adminDashboardView, // Admin Dashboard view
+      component: UserDashboard, // Admin Dashboard view
     },
     {
+      path:'/profile',
+      name: 'profile',
+      component: UserProfile, // Admin Profile view
+    },
+
+    /*{
       path: '/about',
       name: 'about',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
-    },
+    },*/
   ],
 })
 
