@@ -13,13 +13,16 @@ import HelloWorld from './components/HelloWorld.vue'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/login">Login</RouterLink>
+        <RouterLink to="/register">Register</RouterLink>
+        <RouterLink to="/dashboard">Dashboard</RouterLink>
       </nav>
     </div>
   </header>
 
   <RouterView />
 </template>
-
+<!--
 <style scoped>
 header {
   line-height: 1.5;
@@ -83,3 +86,5 @@ nav a:first-of-type {
   }
 }
 </style>
+
+-->
