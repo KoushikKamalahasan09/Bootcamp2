@@ -10,6 +10,11 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path:'/login',
+      name: 'login',
+      component: HomeView, // temporary, replace with LoginView.vue later
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
