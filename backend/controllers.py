@@ -1,5 +1,6 @@
 from flask_restful import Resource, Api
 from flask import request
+from datetime import datetime
 
 from models import db, User,ParkingLot, ParkingSpot, Reservation
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
@@ -12,7 +13,6 @@ class UsersResource(Resource):
             if user:
                 return {'msg': "user found", 'user': user.to_dict()}
             return {'msg': "User not found!"}, 404
-        users = User.query.all()
         users = [user.to_dict() for user in User.query.all()]
         return {"msg": "All users", "users": users}
     
@@ -54,14 +54,9 @@ class UsersResource(Resource):
             user.username = data['username']
         
         db.session.commit()
-        return {
-            'msg': "User information updated!",
-            'user': {
-                'Username': user.username,
-                'email': user.email,
-                'Admin?': user.is_admin
-            }
-        }, 200
+        users = user.to_dict()
+        return {"msg": "User Information updated", "user": users},200
+
 
     @jwt_required()
     def delete(self, user_id=None):
@@ -81,11 +76,12 @@ class Parkinglots(Resource):
         if lot_id:
             lot = ParkingLot.query.get(lot_id)
             if lot:
-                return {'msg': "Lot found", 'Location': lot.location_name, 'Price per Hour': lot.price_per_hour, 'Address': lot.address, 'Pin Code': lot.pin_code, 'Number of Spots': lot.number_of_spots}
+                return {'msg': "Lot found", 'Lot': lot.to_dict()}
             return {'msg': "User not found!"}, 404
-        lots = ParkingLot.query.all()
-        lots = [{'Location': lot.location_name, 'Price per Hour': lot.price_per_hour, 'Address': lot.address, 'Pin Code': lot.pin_code, 'Number of Spots': lot.number_of_spots} for lot in lots]
-        return {"msg": "All parking lots", "lots": lots}
+        lots = [lot.to_dict() for lot in ParkingLot.query.all()]
+        if not lots:
+            return {'msg': "No parking lots available!"}, 200
+        return {"msg": "All parking lots", "lots": lots},200
     
     @jwt_required()
     def post(self):
@@ -136,17 +132,9 @@ class Parkinglots(Resource):
             lot.number_of_spots = data['number_of_spots']
 
         db.session.commit()
+        lot=ParkingLot.query.get(lot_id)
 
-        return {
-            'msg': "Parking lot information updated!",
-            'lot': {
-                'Location': lot.location_name,
-                'Price per Hour': lot.price_per_hour,
-                'Address': lot.address,
-                'Pin Code': lot.pin_code,
-                'Number of Spots': lot.number_of_spots
-            }
-        }, 200
+        return {"msg": "Updated parking lot Information", "Lot": lot.to_dict()}, 200
         
     @jwt_required()
     def delete(self, lot_id=None):
@@ -170,21 +158,11 @@ class ParkingSpots(Resource):
         if spot_id:
             spot = ParkingSpot.query.get(spot_id)
             if spot:
-                return {
-                    'msg': "Spot found",
-                    'Spot Number': spot.spot_number,
-                    'Available?': spot.is_avail,
-                    'Lot ID': spot.lot_id
-                }
+                return {'msg': "Spot found",'spot': spot.to_dict()}
             return {'msg': "Spot not found"}, 404
 
-        spots = ParkingSpot.query.all()
-        result = [{
-            'Spot Number': s.spot_number,
-            'Available?': s.is_avail,
-            'Lot ID': s.lot_id
-        } for s in spots]
-        return {'msg': "All spots", 'spots': result}, 200
+        spots = [spot.to_dict() for spot in ParkingSpot.query.all()]
+        return {'msg': "All spots", 'spots': spots}, 200
 
     @jwt_required()
     def post(self):
@@ -243,32 +221,28 @@ class ParkingSpots(Resource):
         return {'msg': "Spot deleted!"}, 200
 
 class Reservations(Resource):
+    
+    @jwt_required()
     def get(self, reservation_id=None):
         if reservation_id:
             r = Reservation.query.get(reservation_id)
             if not r:
                 return {'msg': "Reservation not found"}, 404
-            cost="In Progress" if r.leaving_timestamp is None else r.spot.lot.price_per_hour * round((r.leaving_timestamp - r.parking_timestamp).total_seconds() / 3600, 2)
-            return {
-                'msg': "Reservation found",
-                'User ID': r.user_id,
-                'Spot ID': r.spot_id,
-                'From': str(r.parking_timestamp),
-                'To': str(r.leaving_timestamp),
-                'Cost': cost,
-                'Active?': r.is_active
-            }
+            id=get_jwt_identity()
+            user=User.query.get(id)
+            if not user.is_admin and r.user_id != id:
+                return {'msg': "You are not authorized to view this reservation"}, 403
+            cost=r.spot.lot.price_per_hour*round((datetime.now()-r.parking_timestamp).total_seconds()/3600,2) if r.leaving_timestamp is None else r.spot.lot.price_per_hour * round((r.leaving_timestamp - r.parking_timestamp).total_seconds() / 3600, 2)
+            r.cost=cost
+            db.session.commit()
+            
+            return {'msg': "Reservation found",'Spor Details': r.spot.to_dict(), 'User Details': r.user.to_dict()},200
+
 
         reservations = Reservation.query.all()
-        data = [{
-            'Username': r.user.username,
-            'Spot ID': r.spot_id,
-            'From': str(r.parking_timestamp),
-            'To': str(r.leaving_timestamp),
-            'Active?': r.is_active
-        } for r in reservations]
-        return {'msg': "All reservations", 'reservations': data}
+        return {'msg': "All reservations", 'reservations': [r.to_dict() for r in reservations]}, 200
 
+    @jwt_required()
     def post(self):
         data = request.get_json()
         user_id = data.get('user_id')
@@ -294,12 +268,19 @@ class Reservations(Resource):
         db.session.commit()
         return {'msg': "Reservation created!"}, 201
 
+    
+    @jwt_required()
     def put(self, reservation_id=None):
         if not reservation_id:
             return {'msg': "Reservation ID is required"}, 400
         r = Reservation.query.get(reservation_id)
         if not r:
             return {'msg': "Reservation not found"}, 404
+        
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin and r.user_id != id:
+            return {'msg': "You are not authorized to view this reservation"}, 403
 
         data = request.get_json()
         if 'leaving_timestamp' in data:
@@ -312,12 +293,18 @@ class Reservations(Resource):
         db.session.commit()
         return {'msg': "Reservation updated!"}, 200
 
+    @jwt_required()
     def delete(self, reservation_id=None):
         if not reservation_id:
             return {'msg': "Reservation ID required"}, 400
         r = Reservation.query.get(reservation_id)
         if not r:
             return {'msg': "Reservation not found"}, 404
+        
+        id=get_jwt_identity()
+        user=User.query.get(id)
+        if not user.is_admin and r.user_id != id:
+            return {'msg': "You are not authorized to view this reservation"}, 403
         db.session.delete(r)
         db.session.commit()
         return {'msg': "Reservation deleted!"}, 200

@@ -97,7 +97,7 @@ class Reservation(db.Model):
             'spot_id': self.spot_id,
             'parking_timestamp': self.parking_timestamp.isoformat() if self.parking_timestamp else None,
             'leaving_timestamp': self.leaving_timestamp.isoformat() if self.leaving_timestamp else None,
-            'parking_cost': self.parking_cost,
+            #'parking_cost': self.parking_cost,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
