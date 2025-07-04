@@ -25,7 +25,7 @@ class UsersResource(Resource):
             return {'msg': "Please provide all required information!"}, 400
         user = User.query.filter_by(email=email).first()
         if user:
-            return {'msg': "User already exists!"}, 400
+            return {'msg': "User already exists!"}, 409
         user = User(email=email, username=username, passhash=passhash, is_admin=False)
         db.session.add(user); db.session.commit()
         return {'msg': "Successfully created user!"}
@@ -77,7 +77,7 @@ class Parkinglots(Resource):
             lot = ParkingLot.query.get(lot_id)
             if lot:
                 return {'msg': "Lot found", 'Lot': lot.to_dict()}
-            return {'msg': "User not found!"}, 404
+            return {'msg': "Lot not found!"}, 404
         lots = [lot.to_dict() for lot in ParkingLot.query.all()]
         if not lots:
             return {'msg': "No parking lots available!"}, 200
@@ -86,6 +86,7 @@ class Parkinglots(Resource):
     @jwt_required()
     def post(self):
         id=get_jwt_identity()
+        print(id)
         user=User.query.get(id)
         if not user.is_admin:
             return {'msg': "You are not authorized to create parking lots!"}, 403
@@ -93,7 +94,7 @@ class Parkinglots(Resource):
         location_name = data.get('location_name', None)
         price_per_hour = data.get('price_per_hour', None)
         address = data.get('address', None)
-        pin_code = data.get('pin_code', None)
+        pin_code = data.get('pincode', None)
         number_of_spots = data.get('number_of_spots', None)
         
         if not location_name or not price_per_hour or not address or not pin_code or not number_of_spots:
@@ -325,8 +326,21 @@ class LoginResource(Resource):
         if user.passhash != password:
             return {'msg': "Invalid password"}, 401
         token=create_access_token(identity=str(user.id))
-        return {"msg": "Login successful",'token': token}, 200
+        return {"msg": "Login successful",'token': token,"isadmin":user.is_admin}, 200
         
 
 
-        
+class RegisterResource(Resource):
+    def post(self):
+        data = request.get_json()
+        username = data.get('username', None)
+        email = data.get('email', None)
+        password = data.get('password', None)
+        if not email or not username or not password:
+            return {'msg': "Please provide all required information!"}, 400
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return {'msg': "User already exists!"}, 409
+        user = User(email=email, username=username, passhash=password)
+        db.session.add(user); db.session.commit()
+        return {'msg': "Successfully Registered!"}, 200     

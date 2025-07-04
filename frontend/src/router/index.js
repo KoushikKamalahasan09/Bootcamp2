@@ -46,6 +46,16 @@ const router = createRouter({
       name: 'profile',
       component: UserProfile, // Admin Profile view
     },
+    {
+      path:'/admin/parkinglots',
+      name: 'admin_parkinglots',
+      component: () => import('../views/Admin/Parkinglots.vue'), // Lazy-loaded Admin Parking Lots
+    },
+    {
+      path:'/admin/parkingspots',
+      name: 'admin_parkingspots',
+      component: () => import('../views/Admin/Parkingspots.vue'), // Lazy-loaded Admin Parking Spots
+    }
 
     /*{
       path: '/about',

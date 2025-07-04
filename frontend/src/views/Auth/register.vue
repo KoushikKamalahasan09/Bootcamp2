@@ -4,14 +4,14 @@
 
     <form @submit.prevent="handleRegister">
       <div class="form-group">
-        <label for="name">Name</label>
+        <label for="name">Username</label>
         <input
-          v-model="name"
+          v-model="username"
           type="text"
-          id="name"
-          name="name"
+          id="Username"
+          name="Username"
           required
-          placeholder="Your full name"
+          placeholder="Your username"
         />
       </div>
 
@@ -54,7 +54,7 @@ export default {
   name: 'RegisterPage',
   data() {
     return {
-      name: '',
+      username: '',
       email: '',
       password: ''
     };
@@ -62,8 +62,37 @@ export default {
   methods: {
     handleRegister() {
       // Replace with real registration logic
-      console.log('Registering user:', this.name, this.email, this.password);
-      // Example: this.$router.push('/login');
+      console.log('Registering user:', this.username, this.email, this.password);
+      
+      const postData={"email": this.email,"username":this.username, "password": this.password};
+      fetch('http://127.0.0.1:5000/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(postData)   // Convert Javascript to JSON string
+      })
+      .then(response=> {
+        if (!response.ok) {
+          if (response.status === 409) {
+            alert('Account already exists. Please login.');
+
+          }
+          if (response.status === 400) {
+            alert('Please provide all required information.');
+          }
+          console.log(response.status);
+
+        }
+        return response.json();
+
+      })
+      .then(data => {
+        console.log(data);
+        // Redirect to dashboard page or handle successful login
+        
+      })
+
     }
   }
 };

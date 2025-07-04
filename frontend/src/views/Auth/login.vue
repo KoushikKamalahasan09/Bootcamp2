@@ -49,10 +49,39 @@ export default {
   },
   methods: {
     handleLogin() {
-      // Replace with real authentication logic
-      //alert(`Logging in with email: ${this.email} and password: ${this.password}`);
+
       console.log('Logging in with:', this.email, this.password);
-      // Example: this.$router.push('/quotes');
+      const postData={"email": this.email, "password": this.password};
+      fetch('http://127.0.0.1:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(postData)   // Convert Javascript to JSON string
+      })
+      .then(response=> {
+        if (!response.ok) {
+          if (response.status === 404) {
+            alert('Account does not exist. Please register first.');
+
+          }
+          console.log(response.status);
+
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Login successful:', data);
+        // Redirect to dashboard page or handle successful login
+        localStorage.setItem('token', data.token); // Store JWT token
+
+        if (data.isadmin){
+          this.$router.push('/admin/dashboard'); // Redirect to admin dashboard
+        
+        } else {
+          this.$router.push('/dashboard'); // Redirect to user dashboard
+        
+    }})
     }
   }
 };
