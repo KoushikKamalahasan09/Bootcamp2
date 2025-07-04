@@ -44,14 +44,16 @@ class UsersResource(Resource):
         
 
         # Update only the fields that are present in the request
-        if 'email' in data:
-            if User.query.filter_by(email=data['email']).first() and data['email'] != user.email:
+        if 'email' in data and data['email'] != user.email:
+            if User.query.filter_by(email=data['email']).first():
                 return {'msg': "Email already exists!"}, 400
             user.email = data['email']
-        if 'username' in data:
-            if User.query.filter_by(username=data['username']).first() and data['username'] != user.username:
+        
+        if 'username' in data and data['username'] != user.username:
+            if User.query.filter_by(username=data['username']).first():
                 return {'msg': "Username already exists!"}, 400
             user.username = data['username']
+
         
         db.session.commit()
         users = user.to_dict()
@@ -61,10 +63,12 @@ class UsersResource(Resource):
     @jwt_required()
     def delete(self, user_id=None):
         if not user_id:
-            return {'msg': "User email is required to delete!"}, 400
+            return {'msg': "User id is required to delete!"}, 400
         user = User.query.get(user_id)
         if not user:
             return {'msg': "User not exists to delete!"}, 404
+        if user.is_admin:
+            return {'msg': "You cannot delete an admin user!"}, 403
         db.session.delete(user)
         db.session.commit()
         return {'msg': "User has been delete!"}, 200
