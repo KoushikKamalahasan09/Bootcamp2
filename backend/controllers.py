@@ -165,6 +165,11 @@ class ParkingSpots(Resource):
             if spot:
                 return {'msg': "Spot found",'spot': spot.to_dict()}
             return {'msg': "Spot not found"}, 404
+        
+        lot_id=request.args.get('lot_id')
+        if lot_id:
+            spots = ParkingSpot.query.filter_by(lot_id=lot_id).all()
+            return {'msg': "Spots in lot", 'spots': [spot.to_dict() for spot in spots]}, 200
 
         spots = [spot.to_dict() for spot in ParkingSpot.query.all()]
         return {'msg': "All spots", 'spots': spots}, 200

@@ -52,7 +52,7 @@ const router = createRouter({
       component: () => import('../views/Admin/Parkinglots.vue'), // Lazy-loaded Admin Parking Lots
     },
     {
-      path:'/admin/parkingspots',
+      path:'/admin/parkinglots/:lot_id',
       name: 'admin_parkingspots',
       component: () => import('../views/Admin/Parkingspots.vue'), // Lazy-loaded Admin Parking Spots
     },
