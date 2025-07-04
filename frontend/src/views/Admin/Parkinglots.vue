@@ -34,6 +34,7 @@ onMounted(() => {
   fetchLots()
 })
 
+// Delete parking lot
 const deleteLot = async (lotId) => {
   const confirmDelete = confirm("Are you sure you want to delete this parking lot?")
   if (!confirmDelete) return
@@ -49,7 +50,6 @@ const deleteLot = async (lotId) => {
     const data = await response.json()
 
     if (response.ok) {
-      // Remove the deleted lot from the list
       lots.value = lots.value.filter(lot => lot.id !== lotId)
       alert(data.msg)
     } else {
@@ -61,13 +61,59 @@ const deleteLot = async (lotId) => {
   }
 }
 
+// State for editing
+const showEditModal = ref(false)
+const editLotData = ref({
+  id: null,
+  location_name: '',
+  price_per_hour: '',
+  address: '',
+  pin_code: '',
+  number_of_spots: ''
+})
+
+const openEditModal = (lot) => {
+  editLotData.value = { ...lot }
+  showEditModal.value = true
+}
+
+const submitEdit = async () => {
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/lots/${editLotData.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        location_name: editLotData.value.location_name,
+        price_per_hour: editLotData.value.price_per_hour,
+        address: editLotData.value.address,
+        pin_code: editLotData.value.pin_code,
+        number_of_spots: editLotData.value.number_of_spots
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok) {
+      alert('Parking lot updated successfully!')
+      showEditModal.value = false
+      fetchLots()
+    } else {
+      alert(data.msg || 'Failed to update parking lot')
+    }
+  } catch (error) {
+    console.error('Update error:', error)
+    alert('An error occurred while updating.')
+  }
+}
 </script>
 
 <template>
   <div style="padding: 2rem; font-family: Arial, sans-serif;">
     <h1 style="margin-bottom: 1rem;">All Parking Lots</h1>
 
-    <!-- Back to Dashboard Link -->
     <router-link
       to="/admin/dashboard"
       style="display: inline-block; margin-bottom: 1.5rem; color: #007bff; text-decoration: none;"
@@ -75,8 +121,6 @@ const deleteLot = async (lotId) => {
       ← Back to Dashboard
     </router-link>
 
-    <!-- Parking Lot Cards -->
-     <!--Add update and add spot-->
     <div v-if="lots.length > 0">
       <div
         v-for="lot in lots"
@@ -89,26 +133,56 @@ const deleteLot = async (lotId) => {
         <p><strong>Price per Hour:</strong> ₹{{ lot.price_per_hour }}</p>
         <p><strong>Total Spots:</strong> {{ lot.number_of_spots }}</p>
 
-        <!-- Buttons -->
         <div style="margin-top: 1rem;">
-            <router-link :to="`/admin/parkinglots/${lot.id}`">
-                <button style="margin-right: 0.5rem;">Open Lot</button>
-            </router-link>
-          <button style="margin-right: 0.5rem;" @click="() => {}">Update Lot</button>
-          <button style="margin-right: 0.5rem;" @click="deleteLot(lot.id)">"Delete Lot</button>
+          <router-link :to="`/admin/parkinglots/${lot.id}`">
+            <button style="margin-right: 0.5rem;">Open Lot</button>
+          </router-link>
+          <button style="margin-right: 0.5rem;" @click="() => openEditModal(lot)">Update Lot</button>
+          <button style="margin-right: 0.5rem;" @click="() => deleteLot(lot.id)">Delete Lot</button>
         </div>
       </div>
     </div>
 
-    <!-- No lots -->
     <div v-else>
       <p>No parking lots available.</p>
+    </div>
+
+    <!-- Edit Modal -->
+    <div v-if="showEditModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+         background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+      <div style="background: white; padding: 2rem; border-radius: 10px; width: 90%; max-width: 500px;">
+        <h2>Edit Parking Lot</h2>
+        <form @submit.prevent="submitEdit">
+          <div style="margin-bottom: 1rem;">
+            <label>Location Name:</label>
+            <input v-model="editLotData.location_name" type="text" required />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label>Address:</label>
+            <input v-model="editLotData.address" type="text" required />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label>Pin Code:</label>
+            <input v-model="editLotData.pin_code" type="text" required />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label>Price Per Hour:</label>
+            <input v-model.number="editLotData.price_per_hour" type="number" step="0.01" required />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label>Total Spots:</label>
+            <input v-model.number="editLotData.number_of_spots" type="number" required />
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" @click="showEditModal = false">Cancel</button>
+            <button type="submit">Save</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
 
-
-<!-- Replace inline button styles with this -->
 <style scoped>
 button {
   background-color: #ffffff;
@@ -121,5 +195,18 @@ button {
 
 button:hover {
   background-color: #f0f0f0;
+}
+
+input {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 </style>

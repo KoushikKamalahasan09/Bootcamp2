@@ -84,6 +84,7 @@ export default {
           console.log(response.status);
 
         }
+        alert('Registration successful! You can now login.');
         return response.json();
 
       })
