@@ -46,7 +46,7 @@ const deleteSpot = async (spotId) => {
 
 onMounted(fetchSpots)
 </script>
-
+<!--Add update and add spot-->
 <template>
   <div class="p-4">
     <h1 class="text-2xl font-bold mb-4">Parking Spots for Lot {{ lotId }}</h1>

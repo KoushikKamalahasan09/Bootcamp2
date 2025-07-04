@@ -76,6 +76,7 @@ const deleteLot = async (lotId) => {
     </router-link>
 
     <!-- Parking Lot Cards -->
+     <!--Add update and add spot-->
     <div v-if="lots.length > 0">
       <div
         v-for="lot in lots"
@@ -90,7 +91,7 @@ const deleteLot = async (lotId) => {
 
         <!-- Buttons -->
         <div style="margin-top: 1rem;">
-            <router-link :to="`/admin/lots/${lot.id}`">
+            <router-link :to="`/admin/parkinglots/${lot.id}`">
                 <button style="margin-right: 0.5rem;">Open Lot</button>
             </router-link>
           <button style="margin-right: 0.5rem;" @click="() => {}">Update Lot</button>
