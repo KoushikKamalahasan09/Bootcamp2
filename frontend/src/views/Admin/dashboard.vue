@@ -66,6 +66,8 @@ const handleSubmit = () => {
         <li>
           👉 <RouterLink to="/admin/profile">View Profile</RouterLink>
           👉 <RouterLink to="/admin/parkinglots">View Parking lots</RouterLink>
+          👉 <RouterLink to="/admin/user_list">View all Users</RouterLink>
+
         </li>
       </ul>
     </section>

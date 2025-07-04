@@ -33,6 +33,34 @@ const fetchLots = async () => {
 onMounted(() => {
   fetchLots()
 })
+
+const deleteLot = async (lotId) => {
+  const confirmDelete = confirm("Are you sure you want to delete this parking lot?")
+  if (!confirmDelete) return
+
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/lots/${lotId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    const data = await response.json()
+
+    if (response.ok) {
+      // Remove the deleted lot from the list
+      lots.value = lots.value.filter(lot => lot.id !== lotId)
+      alert(data.msg)
+    } else {
+      alert(data.msg || "Failed to delete lot")
+    }
+  } catch (error) {
+    console.error("Error deleting lot:", error)
+    alert("An error occurred while deleting the parking lot.")
+  }
+}
+
 </script>
 
 <template>
@@ -64,7 +92,7 @@ onMounted(() => {
         <div style="margin-top: 1rem;">
           <button style="margin-right: 0.5rem;" @click="() => {}">Open Lot</button>
           <button style="margin-right: 0.5rem;" @click="() => {}">Update Lot</button>
-          <button style="margin-right: 0.5rem;" @click="() => {}">Delete Lot</button>
+          <button style="margin-right: 0.5rem;" @click="deleteLot(lot.id)">"Delete Lot</button>
         </div>
       </div>
     </div>
