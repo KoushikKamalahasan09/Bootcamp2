@@ -2,7 +2,8 @@
   <div class="login-container">
     <h2>Login to Your Account</h2>
 
-    <form @submit.prevent="handleLogin">
+
+    <form @submit.prevent="handleLogin">  <!--Prevents normal action of html form action-->
       <div class="form-group">
         <label for="email">Email</label>
         <input
@@ -49,6 +50,7 @@ export default {
   methods: {
     handleLogin() {
       // Replace with real authentication logic
+      //alert(`Logging in with email: ${this.email} and password: ${this.password}`);
       console.log('Logging in with:', this.email, this.password);
       // Example: this.$router.push('/quotes');
     }
