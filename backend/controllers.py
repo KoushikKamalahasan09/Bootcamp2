@@ -1,13 +1,20 @@
 from flask_restful import Resource, Api
 from flask import request
 from datetime import datetime
+from time import sleep
+
 
 from models import db, User,ParkingLot, ParkingSpot, Reservation
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
+from flask_caching import Cache
+
+cache=Cache()
 
 class UsersResource(Resource):
-    @jwt_required()
+    #@jwt_required()
+    @cache.cached(timeout=300,key_prefix='users_list')
     def get(self, user_id=None):
+        sleep(10)
         if user_id:
             user = User.query.get(user_id)
             if user:
