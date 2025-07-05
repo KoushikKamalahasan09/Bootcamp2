@@ -146,8 +146,27 @@ class Parkinglots(Resource):
         if 'pin_code' in data:
             lot.pin_code = data['pin_code']
         if 'number_of_spots' in data:
-            lot.number_of_spots = data['number_of_spots']
+            current_spots = ParkingSpot.query.filter_by(lot_id=lot_id).count()
+            new_spots = data['number_of_spots']
 
+            if new_spots > current_spots:
+                for i in range(current_spots + 1, new_spots + 1):
+                    spot = ParkingSpot(lot_id=lot.id, spot_number=i, is_avail=True)
+                    db.session.add(spot)
+            elif new_spots < current_spots:
+                # Delete the most recent (likely unused) spots
+                excess_spots = (
+                    ParkingSpot.query
+                    .filter_by(lot_id=lot_id)
+                    .order_by(ParkingSpot.id.desc())  # using spot.id as it's guaranteed to be unique
+                    .limit(current_spots - new_spots)
+                    .all()
+                )
+                for spot in excess_spots:
+                    db.session.delete(spot)
+
+            # Now finally update the field
+            lot.number_of_spots = new_spots
         db.session.commit()
         lot=ParkingLot.query.get(lot_id)
 
@@ -261,10 +280,10 @@ class ParkingSpots(Resource):
 
     @jwt_required()
     def delete(self, spot_id=None):
-        user = User.query.get(get_jwt_identity())
+        id = get_jwt_identity()
+        user = User.query.get(id)
         if not user.is_admin:
             return {'msg': "You are not authorized to delete parking spots!"}, 403
-
         if not spot_id:
             return {'msg': "Spot ID required"}, 400
 
@@ -272,9 +291,23 @@ class ParkingSpots(Resource):
         if not spot:
             return {'msg': "Spot not found"}, 404
 
+        # Save info before deleting
+        lot_id = spot.lot_id
+        spot_number = spot.spot_number
+
+        # Delete the spot
         db.session.delete(spot)
         db.session.commit()
-        return {'msg': "Spot deleted"}, 200
+
+        # Re-create a fresh spot with same lot_id and spot_number
+        new_spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
+        db.session.add(new_spot)
+        db.session.commit()
+
+        return {
+            'msg': f"Spot {spot_number} deleted and re-created successfully!",
+            'new_spot': new_spot.to_dict()
+        }, 200
 
 
 class Reservations(Resource):
