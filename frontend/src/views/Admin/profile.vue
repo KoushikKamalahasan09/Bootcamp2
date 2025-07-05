@@ -10,6 +10,7 @@ const updatedUsername = ref('')
 const updatedEmail = ref('')
 const message = ref('')
 
+// Fetch profile on mount
 const fetchProfile = async () => {
   try {
     const res = await fetch(`http://localhost:5000/users/${userId}`, {
@@ -18,7 +19,9 @@ const fetchProfile = async () => {
       }
     })
     const data = await res.json()
-    if (res.ok) {
+    console.log('Fetched profile response:', data)
+
+    if (res.ok && data.user) {
       admin.value = data.user
       updatedUsername.value = data.user.username
       updatedEmail.value = data.user.email
@@ -44,7 +47,7 @@ const updateProfile = async () => {
       })
     })
     const data = await res.json()
-    if (res.ok) {
+    if (res.ok && data.user) {
       admin.value = data.user
       message.value = 'Profile updated successfully!'
       editing.value = false
@@ -67,7 +70,8 @@ onMounted(fetchProfile)
     <router-link to="/admin/dashboard"
       class="text-blue-600 hover:underline mb-4 inline-block">Back to Dashboard</router-link>
 
-    <div v-if="!editing">
+    <!-- Show profile only if data is ready -->
+    <div v-if="admin && admin.username && !editing">
       <p><strong>Username:</strong> {{ admin.username }}</p>
       <p><strong>Email:</strong> {{ admin.email }}</p>
       <button @click="editing = true"
@@ -76,7 +80,8 @@ onMounted(fetchProfile)
       </button>
     </div>
 
-    <div v-else>
+    <!-- Edit form -->
+    <div v-else-if="editing">
       <label class="block mt-3 font-semibold">Username:</label>
       <input v-model="updatedUsername" class="w-full px-3 py-1 border rounded" />
 
@@ -90,68 +95,31 @@ onMounted(fetchProfile)
           class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
       </div>
     </div>
+
+    <!-- Loading fallback -->
+    <div v-else>
+      <p class="text-center text-gray-500">Loading profile...</p>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* Container styles */
-.max-w-lg {
-  max-width: 600px;
-}
+/* Your existing styles — no change */
+.max-w-lg { max-width: 600px; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mt-10 { margin-top: 2.5rem; }
+.p-6 { padding: 1.5rem; }
+.bg-white { background-color: #fff; }
+.shadow-lg { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+.rounded-lg { border-radius: 0.5rem; }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
+.text-2xl { font-size: 1.5rem; }
+.font-bold { font-weight: 700; }
+.mb-4 { margin-bottom: 1rem; }
+.text-center { text-align: center; }
+.text-red-600 { color: #dc2626; }
 
-.mt-10 {
-  margin-top: 2.5rem;
-}
-
-.p-6 {
-  padding: 1.5rem;
-}
-
-.bg-white {
-  background-color: #fff;
-}
-
-.shadow-lg {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.rounded-lg {
-  border-radius: 0.5rem;
-}
-
-/* Text styles */
-.text-2xl {
-  font-size: 1.5rem;
-}
-
-.font-bold {
-  font-weight: 700;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-red-600 {
-  color: #dc2626;
-}
-
-/* Label styles */
-label {
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-/* Input styles */
+label { margin-bottom: 0.5rem; display: block; }
 input {
   padding: 0.5rem;
   border: 1px solid #ccc;
@@ -160,83 +128,26 @@ input {
   box-sizing: border-box;
 }
 
-/* Button styles */
-button {
-  cursor: pointer;
-  font-weight: 600;
-}
+button { cursor: pointer; font-weight: 600; }
+.bg-blue-600 { background-color: #2563eb; }
+.bg-blue-700 { background-color: #1d4ed8; }
+.bg-green-600 { background-color: #16a34a; }
+.bg-green-700 { background-color: #15803d; }
+.bg-gray-500 { background-color: #6b7280; }
+.bg-gray-600 { background-color: #4b5563; }
+.text-white { color: #fff; }
 
-.bg-blue-600 {
-  background-color: #2563eb;
-}
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-3 { margin-top: 0.75rem; }
+.w-full { width: 100%; }
 
-.bg-blue-700 {
-  background-color: #1d4ed8;
-}
+.flex { display: flex; }
+.gap-3 { gap: 0.75rem; }
+.rounded { border-radius: 4px; }
 
-.bg-green-600 {
-  background-color: #16a34a;
-}
-
-.bg-green-700 {
-  background-color: #15803d;
-}
-
-.bg-gray-500 {
-  background-color: #6b7280;
-}
-
-.bg-gray-600 {
-  background-color: #4b5563;
-}
-
-.text-white {
-  color: #fff;
-}
-
-.px-4 {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-.py-2 {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-
-.mt-4 {
-  margin-top: 1rem;
-}
-
-.mt-3 {
-  margin-top: 0.75rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.flex {
-  display: flex;
-}
-
-.gap-3 {
-  gap: 0.75rem;
-}
-
-.rounded {
-  border-radius: 4px;
-}
-
-.hover\:bg-blue-700:hover {
-  background-color: #1d4ed8;
-}
-
-.hover\:bg-green-700:hover {
-  background-color: #15803d;
-}
-
-.hover\:bg-gray-600:hover {
-  background-color: #4b5563;
-}
+.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+.hover\:bg-green-700:hover { background-color: #15803d; }
+.hover\:bg-gray-600:hover { background-color: #4b5563; }
 </style>

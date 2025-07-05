@@ -4,7 +4,7 @@ from models import db,User,ParkingLot,ParkingSpot,Reservation
 from flask_restful import Resource, Api
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
 from controllers import Parkinglots,UsersResource,ParkingSpots,Reservations,LoginResource,RegisterResource
-#from controllers import cache
+from controllers import cache
 
 # backend/app.py
 
@@ -39,10 +39,10 @@ api.add_resource(LoginResource, '/login')
 api.add_resource(RegisterResource, '/register')
 
 
-#app.config['CACHE_TYPE'] = 'RedisCache'
-#app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379/0'
+app.config['CACHE_TYPE'] = 'RedisCache'
+app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379/0'
 
-#cache.init_app(app)
+cache.init_app(app)
 
 
 

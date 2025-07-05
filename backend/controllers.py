@@ -6,22 +6,27 @@ from datetime import datetime
 
 from models import db, User,ParkingLot, ParkingSpot, Reservation
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
-#from flask_caching import Cache
+from flask_caching import Cache
 
-#cache=Cache()
+cache=Cache()
 
 class UsersResource(Resource):
     @jwt_required()
-    #@cache.cached(timeout=300,key_prefix='users_list')
+    #@cache.cached(timeout=600,key_prefix='users_list')
     def get(self, user_id=None):
-        #sleep(10)
         if user_id:
             user = User.query.get(user_id)
             if user:
                 return {'msg': "user found", 'user': user.to_dict()}
             return {'msg': "User not found!"}, 404
+        return self._get_all_users()
+    
+    @cache.cached(timeout=600, key_prefix='users_list')
+    def _get_all_users(self):
+        #print("🔁 _get_all_users() called")
         users = [user.to_dict() for user in User.query.all()]
-        return {"msg": "All users", "users": users}
+        #print("✅ Returning", len(users), "users")
+        return {"msg": "All users", "users": users}, 200
     
     def post(self):
         data = request.get_json()
@@ -35,6 +40,7 @@ class UsersResource(Resource):
             return {'msg': "User already exists!"}, 409
         user = User(email=email, username=username, passhash=passhash, is_admin=False)
         db.session.add(user); db.session.commit()
+        cache.delete('users_list')  # Clear cache after adding a new user
         return {'msg': "Successfully created user!"}
     
     @jwt_required()
@@ -64,6 +70,7 @@ class UsersResource(Resource):
         
         db.session.commit()
         users = user.to_dict()
+        cache.delete('users_list')  # Clear cache after updating user information
         return {"msg": "User Information updated", "user": users},200
 
 
@@ -78,11 +85,13 @@ class UsersResource(Resource):
             return {'msg': "You cannot delete an admin user!"}, 403
         db.session.delete(user)
         db.session.commit()
+        cache.delete('users_list')  # Clear cache after deleting a user
         return {'msg': "User has been delete!"}, 200
     
 class Parkinglots(Resource):
     
     @jwt_required()
+    @cache.cached(timeout=600,key_prefix='parking_lots_list')
     def get(self,lot_id=None):
         if lot_id:
             lot = ParkingLot.query.get(lot_id)
@@ -118,6 +127,8 @@ class Parkinglots(Resource):
             spot=ParkingSpot(lot_id=lot.id, spot_number=i, is_avail=True)
             db.session.add(spot)
         db.session.commit()
+        cache.delete('parking_lots_list')  # Clear cache after adding a new parking lot
+        cache.delete('parking_spots')  # Clear cache for parking spots as well
         return {'msg': "Successfully created parking lot!"}
     
     @jwt_required()
@@ -169,6 +180,8 @@ class Parkinglots(Resource):
             lot.number_of_spots = new_spots
         db.session.commit()
         lot=ParkingLot.query.get(lot_id)
+        cache.delete('parking_lots_list')  # Clear cache after updating parking lot information
+        cache.delete('parking_spots')  # Clear cache for parking spots as well
 
         return {"msg": "Updated parking lot Information", "Lot": lot.to_dict()}, 200
         
@@ -185,12 +198,15 @@ class Parkinglots(Resource):
             return {'msg': "Parking lot does not exist!"}, 404
         db.session.delete(lot)
         db.session.commit()
+        cache.delete('parking_lots_list')  # Clear cache after deleting parking lot
+        cache.delete('parking_spots')  # Clear cache for parking spots as well
         return {'msg': "Parking lot has been deleted!"}, 200
     
 
 class ParkingSpots(Resource):
 
     @jwt_required()
+    @cache.cached(timeout=600, key_prefix='parking_spots')
     def get(self, spot_id=None):
         if spot_id:
             spot = ParkingSpot.query.get(spot_id)
@@ -253,6 +269,7 @@ class ParkingSpots(Resource):
         spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
         db.session.add(spot)
         db.session.commit()
+        cache.delete('parking_spots')  # Clear cache after adding a new parking spot
 
         return {'msg': "Parking spot created", 'spot_id': spot.id}, 201
 
@@ -276,6 +293,7 @@ class ParkingSpots(Resource):
             spot.lot_id = data['lot_id']
 
         db.session.commit()
+        cache.delete('parking_spots')  # Clear cache after updating parking spot information
         return {'msg': "Spot updated"}, 200
 
     @jwt_required()
@@ -303,6 +321,7 @@ class ParkingSpots(Resource):
         new_spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
         db.session.add(new_spot)
         db.session.commit()
+        cache.delete('parking_spots')  # Clear cache after deleting and re-creating parking spot
 
         return {
             'msg': f"Spot {spot_number} deleted and re-created successfully!",
