@@ -113,6 +113,11 @@ class Parkinglots(Resource):
         
         lot = ParkingLot(location_name=location_name, price_per_hour=price_per_hour, address=address, pin_code=pin_code, number_of_spots=number_of_spots)
         db.session.add(lot); db.session.commit()
+        
+        for i in range(1, number_of_spots + 1):
+            spot=ParkingSpot(lot_id=lot.id, spot_number=i, is_avail=True)
+            db.session.add(spot)
+        db.session.commit()
         return {'msg': "Successfully created parking lot!"}
     
     @jwt_required()
@@ -249,7 +254,7 @@ class Reservations(Resource):
             user=User.query.get(id)
             if not user.is_admin and r.user_id != id:
                 return {'msg': "You are not authorized to view this reservation"}, 403
-            cost=r.spot.lot.price_per_hour*round((datetime.now()-r.parking_timestamp).total_seconds()/3600,2) if r.leaving_timestamp is None else r.spot.lot.price_per_hour * round((r.leaving_timestamp - r.parking_timestamp).total_seconds() / 3600, 2)
+            cost=r.calculate_cost()
             r.cost=cost
             db.session.commit()
             
@@ -262,7 +267,7 @@ class Reservations(Resource):
     @jwt_required()
     def post(self):
         data = request.get_json()
-        user_id = data.get('user_id')
+        user_id = get_jwt_identity()
         spot_id = data.get('spot_id')
         leaving_timestamp = data.get('leaving_timestamp')
 
@@ -306,6 +311,9 @@ class Reservations(Resource):
             r.parking_cost = data['parking_cost']
         if 'is_active' in data:
             r.is_active = data['is_active']
+        if 'is_active' in data and data['is_active'] == False:
+            r.spot.is_avail = True
+
 
         db.session.commit()
         return {'msg': "Reservation updated!"}, 200

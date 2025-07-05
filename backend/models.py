@@ -102,3 +102,10 @@ class Reservation(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
+    
+    # In Reservation class
+    def calculate_cost(self):
+        end = self.leaving_timestamp or datetime.now(timezone.utc)
+        duration_hours = (end - self.parking_timestamp).total_seconds() / 3600
+        return round(duration_hours * self.spot.lot.price_per_hour, 2)
+

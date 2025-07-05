@@ -48,47 +48,36 @@ cache.init_app(app)
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        #print(" Tables created")
-        
-        admin=User.query.filter_by(is_admin=True).first()
-        
+
+        admin = User.query.filter_by(is_admin=True).first()
+
         if not admin:
-            admin = User(username='admin',passhash='admin123',email='admin@admin.com', is_admin=True)
-            User1=User(username='user1',passhash='user123',email='user1@user.com', is_admin=False)
-            User2=User(username='user2',passhash='user123',email='user2@user.com', is_admin=False)
-            User3=User(username='user3',passhash='user123',email='user3@user.com', is_admin=False)
-            User4=User(username='user4',passhash='user123',email='user4@user.com', is_admin=False)
-            Lot1=ParkingLot(location_name='Lot 1', price_per_hour=1000, address='123 Main St', pin_code='123456', number_of_spots=50)
-            Lot2=ParkingLot(location_name='Lot 2', price_per_hour=500, address='1234 Main St', pin_code='123457', number_of_spots=150)
-            Lot3=ParkingLot(location_name='Lot 3', price_per_hour=1500, address='1235 Main St', pin_code='123458', number_of_spots=250)
-            Lot4=ParkingLot(location_name='Lot 4', price_per_hour=750, address='1236 Main St', pin_code='123459', number_of_spots=350)
-            Spot1_1=ParkingSpot(lot_id=1, spot_number=1, is_avail=True)
-            Spot1_2=ParkingSpot(lot_id=1, spot_number=2, is_avail=True)
-            Spot2_1=ParkingSpot(lot_id=2, spot_number=1, is_avail=True)
-            Spot2_2=ParkingSpot(lot_id=2, spot_number=2, is_avail=True)
-            Spot3_1=ParkingSpot(lot_id=3, spot_number=1, is_avail=True)
-            Spot3_2=ParkingSpot(lot_id=3, spot_number=2, is_avail=True)
-            Spot4_1=ParkingSpot(lot_id=4, spot_number=1, is_avail=True)
-            Spot4_2=ParkingSpot(lot_id=4, spot_number=2, is_avail=True)
-            
+            admin = User(username='admin', passhash='admin123', email='admin@admin.com', is_admin=True)
+            users = [
+                User(username='user1', passhash='user123', email='user1@user.com', is_admin=False),
+                User(username='user2', passhash='user123', email='user2@user.com', is_admin=False),
+                User(username='user3', passhash='user123', email='user3@user.com', is_admin=False),
+                User(username='user4', passhash='user123', email='user4@user.com', is_admin=False)
+            ]
+
+            lots = [
+                ParkingLot(location_name='Lot 1', price_per_hour=1000, address='123 Main St', pin_code='123456', number_of_spots=10),
+                ParkingLot(location_name='Lot 2', price_per_hour=500, address='1234 Main St', pin_code='123457', number_of_spots=12),
+                ParkingLot(location_name='Lot 3', price_per_hour=1500, address='1235 Main St', pin_code='123458', number_of_spots=14),
+                ParkingLot(location_name='Lot 4', price_per_hour=750, address='1236 Main St', pin_code='123459', number_of_spots=20)
+            ]
 
             db.session.add(admin)
-            db.session.add(User1)
-            db.session.add(User2)
-            db.session.add(User3)
-            db.session.add(User4)
-            db.session.add(Lot1)
-            db.session.add(Lot2)
-            db.session.add(Lot3)
-            db.session.add(Lot4)
-            db.session.add(Spot1_1)
-            db.session.add(Spot1_2)
-            db.session.add(Spot2_1)
-            db.session.add(Spot2_2)
-            db.session.add(Spot3_1)
-            db.session.add(Spot3_2)
-            db.session.add(Spot4_1)
-            db.session.add(Spot4_2)
+            db.session.add_all(users)
+            db.session.add_all(lots)
             db.session.commit()
-        
+
+            # Now generate spots for each lot
+            for lot in lots:
+                for i in range(1, lot.number_of_spots + 1):
+                    spot = ParkingSpot(lot_id=lot.id, spot_number=i, is_avail=True)
+                    db.session.add(spot)
+
+            db.session.commit()
+
         app.run(debug=True)
