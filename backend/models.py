@@ -53,59 +53,53 @@ class ParkingLot(db.Model):
 
 # Parking spot model
 class ParkingSpot(db.Model):
-    
     __tablename__ = 'parking_spots'
-    
-    
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     lot_id = db.Column(db.Integer, db.ForeignKey('parking_lots.id'), nullable=False)
-    is_avail = db.Column(db.Boolean, default=True, nullable=False)
     spot_number = db.Column(db.String(10), nullable=False)
+
     reservations = db.relationship('Reservation', backref='spot', lazy=True)
-    #lot = db.relationship('ParkingLot', backref='spots')
-    
+
     def to_dict(self):
         return {
             'id': self.id,
             'lot_id': self.lot_id,
-            'is_avail': self.is_avail,
             'spot_number': self.spot_number
         }
 
 
 # Reservation model
 class Reservation(db.Model):
-    
     __tablename__ = 'reservations'
-
-
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     spot_id = db.Column(db.Integer, db.ForeignKey('parking_spots.id'), nullable=False)
-    parking_timestamp = db.Column(db.DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
-    leaving_timestamp = db.Column(db.DateTime)
+
+    parking_timestamp = db.Column(db.DateTime(timezone=True), nullable=False)
+    leaving_timestamp = db.Column(db.DateTime(timezone=True), nullable=False)
+
     parking_cost = db.Column(db.Float)
     is_active = db.Column(db.Boolean, default=True)
-    created_at= db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc))
+
+    def calculate_cost(self):
+        rate = self.spot.lot.price_per_hour
+        duration = (self.leaving_timestamp - self.parking_timestamp).total_seconds() / 3600
+        return round(rate * duration, 2)
 
     def to_dict(self):
         return {
             'id': self.id,
             'user_id': self.user_id,
             'spot_id': self.spot_id,
-            'parking_timestamp': self.parking_timestamp.isoformat() if self.parking_timestamp else None,
-            'leaving_timestamp': self.leaving_timestamp.isoformat() if self.leaving_timestamp else None,
-            #'parking_cost': self.parking_cost,
+            'parking_timestamp': self.parking_timestamp.isoformat(),
+            'leaving_timestamp': self.leaving_timestamp.isoformat(),
+            'parking_cost': self.calculate_cost(),
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-    
-    # In Reservation class
-    def calculate_cost(self):
-        end = self.leaving_timestamp or datetime.now(timezone.utc)
-        duration_hours = (end - self.parking_timestamp).total_seconds() / 3600
-        return round(duration_hours * self.spot.lot.price_per_hour, 2)
-

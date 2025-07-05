@@ -168,171 +168,247 @@ class Parkinglots(Resource):
         db.session.commit()
         return {'msg': "Parking lot has been deleted!"}, 200
     
+
 class ParkingSpots(Resource):
-    
+
     @jwt_required()
     def get(self, spot_id=None):
         if spot_id:
             spot = ParkingSpot.query.get(spot_id)
-            if spot:
-                return {'msg': "Spot found",'spot': spot.to_dict()}
-            return {'msg': "Spot not found"}, 404
-        
-        lot_id=request.args.get('lot_id')
-        if lot_id:
-            spots = ParkingSpot.query.filter_by(lot_id=lot_id).all()
-            return {'msg': "Spots in lot", 'spots': [spot.to_dict() for spot in spots]}, 200
+            if not spot:
+                return {'msg': "Spot not found"}, 404
+            return {'msg': "Spot found", 'spot': spot.to_dict()}, 200
 
-        spots = [spot.to_dict() for spot in ParkingSpot.query.all()]
-        return {'msg': "All spots", 'spots': spots}, 200
+        lot_id = request.args.get('lot_id')
+
+        # Optional: Time-based availability query
+        start = request.args.get('start')
+        end = request.args.get('end')
+
+        query = ParkingSpot.query
+        if lot_id:
+            query = query.filter_by(lot_id=lot_id)
+
+        spots = query.all()
+        result = []
+
+        if start and end:
+            try:
+                start_time = datetime.fromisoformat(start)
+                end_time = datetime.fromisoformat(end)
+            except ValueError:
+                return {'msg': 'Invalid timestamp format. Use ISO 8601 format.'}, 400
+
+            for spot in spots:
+                overlapping = Reservation.query.filter(
+                    Reservation.spot_id == spot.id,
+                    Reservation.is_active == True,
+                    Reservation.parking_timestamp < end_time,
+                    Reservation.leaving_timestamp > start_time
+                ).first()
+                if not overlapping:
+                    result.append(spot.to_dict())
+            return {'msg': f"Available spots in time range", 'spots': result}, 200
+
+        # No time filter, return all spots
+        return {'msg': "All spots", 'spots': [s.to_dict() for s in spots]}, 200
 
     @jwt_required()
     def post(self):
-        id=get_jwt_identity()
-        user=User.query.get(id)
+        user = User.query.get(get_jwt_identity())
         if not user.is_admin:
             return {'msg': "You are not authorized to create parking spots!"}, 403
+
         data = request.get_json()
         lot_id = data.get('lot_id')
         spot_number = data.get('spot_number')
+
         if not lot_id or not spot_number:
-            return {'msg': "Missing spot number or lot ID"}, 400
+            return {'msg': "Missing lot_id or spot_number"}, 400
+
+        # Optional: prevent duplicate spot numbers in same lot
+        exists = ParkingSpot.query.filter_by(lot_id=lot_id, spot_number=spot_number).first()
+        if exists:
+            return {'msg': "Spot number already exists in this lot"}, 409
 
         spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
         db.session.add(spot)
         db.session.commit()
-        return {'msg': "Parking spot created!"}, 201
+
+        return {'msg': "Parking spot created", 'spot_id': spot.id}, 201
 
     @jwt_required()
     def put(self, spot_id=None):
-        id=get_jwt_identity()
-        user=User.query.get(id)
+        user = User.query.get(get_jwt_identity())
         if not user.is_admin:
             return {'msg': "You are not authorized to update parking spots!"}, 403
+
         if not spot_id:
-            return {'msg': "Spot ID required"}, 400
+            return {'msg': "Spot ID is required"}, 400
+
         spot = ParkingSpot.query.get(spot_id)
         if not spot:
             return {'msg': "Spot not found"}, 404
 
         data = request.get_json()
-        if 'is_avail' in data:
-            spot.is_avail = data['is_avail']
         if 'spot_number' in data:
             spot.spot_number = data['spot_number']
         if 'lot_id' in data:
             spot.lot_id = data['lot_id']
 
         db.session.commit()
-        return {'msg': "Spot updated!"}, 200
+        return {'msg': "Spot updated"}, 200
 
     @jwt_required()
     def delete(self, spot_id=None):
-        id=get_jwt_identity()
-        user=User.query.get(id)
+        user = User.query.get(get_jwt_identity())
         if not user.is_admin:
             return {'msg': "You are not authorized to delete parking spots!"}, 403
+
         if not spot_id:
             return {'msg': "Spot ID required"}, 400
+
         spot = ParkingSpot.query.get(spot_id)
         if not spot:
             return {'msg': "Spot not found"}, 404
 
         db.session.delete(spot)
         db.session.commit()
-        return {'msg': "Spot deleted!"}, 200
+        return {'msg': "Spot deleted"}, 200
+
 
 class Reservations(Resource):
     
     @jwt_required()
     def get(self, reservation_id=None):
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+
         if reservation_id:
             r = Reservation.query.get(reservation_id)
             if not r:
                 return {'msg': "Reservation not found"}, 404
-            id=get_jwt_identity()
-            user=User.query.get(id)
-            if not user.is_admin and r.user_id != id:
+            if not user.is_admin and r.user_id != user_id:
                 return {'msg': "You are not authorized to view this reservation"}, 403
-            cost=r.calculate_cost()
-            r.cost=cost
-            db.session.commit()
-            
-            return {'msg': "Reservation found",'Spor Details': r.spot.to_dict(), 'User Details': r.user.to_dict()},200
+            return {
+                'msg': "Reservation found",
+                'reservation': r.to_dict(),
+                'spot': r.spot.to_dict(),
+                'user': r.user.to_dict()
+            }, 200
 
+        # Admins get all, users get their own
+        if user.is_admin:
+            reservations = Reservation.query.all()
+        else:
+            reservations = Reservation.query.filter_by(user_id=user_id).all()
 
-        reservations = Reservation.query.all()
-        return {'msg': "All reservations", 'reservations': [r.to_dict() for r in reservations]}, 200
+        return {
+            'msg': "Reservations retrieved",
+            'reservations': [r.to_dict() for r in reservations]
+        }, 200
 
     @jwt_required()
     def post(self):
-        data = request.get_json()
         user_id = get_jwt_identity()
-        spot_id = data.get('spot_id')
-        leaving_timestamp = data.get('leaving_timestamp')
+        data = request.get_json()
 
-        if not user_id or not spot_id:
-            return {'msg': "Missing user_id or spot_id"}, 400
+        spot_id = data.get('spot_id')
+        start_raw = data.get('parking_timestamp')
+        end_raw = data.get('leaving_timestamp')
+
+        if not spot_id or not start_raw or not end_raw:
+            return {'msg': "spot_id, parking_timestamp, and leaving_timestamp are required"}, 400
+
+        try:
+            start_time = datetime.fromisoformat(start_raw)
+            end_time = datetime.fromisoformat(end_raw)
+        except ValueError:
+            return {'msg': 'Invalid timestamp format. Use ISO format.'}, 400
+
+        if start_time >= end_time:
+            return {'msg': 'Start time must be before end time'}, 400
 
         spot = ParkingSpot.query.get(spot_id)
-        if not spot or not spot.is_avail:
-            return {'msg': "Spot not available"}, 400
+        if not spot:
+            return {'msg': "Parking spot not found"}, 404
+
+        # Overlapping check
+        overlapping = Reservation.query.filter(
+            Reservation.spot_id == spot_id,
+            Reservation.is_active == True,
+            Reservation.parking_timestamp < end_time,
+            Reservation.leaving_timestamp > start_time
+        ).first()
+
+        if overlapping:
+            return {'msg': "Spot already reserved during this time"}, 409
 
         reservation = Reservation(
             user_id=user_id,
             spot_id=spot_id,
-            leaving_timestamp=leaving_timestamp,
-            parking_cost=0.0  # you can calculate based on duration
+            parking_timestamp=start_time,
+            leaving_timestamp=end_time,
+            is_active=True
         )
-        spot.is_avail = False  # mark as unavailable
-
         db.session.add(reservation)
         db.session.commit()
-        return {'msg': "Reservation created!"}, 201
 
-    
+        return {'msg': "Reservation created successfully", 'reservation_id': reservation.id}, 201
+
     @jwt_required()
     def put(self, reservation_id=None):
         if not reservation_id:
             return {'msg': "Reservation ID is required"}, 400
+
         r = Reservation.query.get(reservation_id)
         if not r:
             return {'msg': "Reservation not found"}, 404
-        
-        id=get_jwt_identity()
-        user=User.query.get(id)
-        if not user.is_admin and r.user_id != id:
-            return {'msg': "You are not authorized to view this reservation"}, 403
+
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        if not user.is_admin and r.user_id != user_id:
+            return {'msg': "You are not authorized to modify this reservation"}, 403
 
         data = request.get_json()
+
+        # Update timestamps
         if 'leaving_timestamp' in data:
-            r.leaving_timestamp = data['leaving_timestamp']
-        if 'parking_cost' in data:
-            r.parking_cost = data['parking_cost']
+            try:
+                r.leaving_timestamp = datetime.fromisoformat(data['leaving_timestamp'])
+            except ValueError:
+                return {'msg': "Invalid leaving_timestamp format"}, 400
+
+        if 'parking_timestamp' in data:
+            try:
+                r.parking_timestamp = datetime.fromisoformat(data['parking_timestamp'])
+            except ValueError:
+                return {'msg': "Invalid parking_timestamp format"}, 400
+
+        # Update status
         if 'is_active' in data:
             r.is_active = data['is_active']
-        if 'is_active' in data and data['is_active'] == False:
-            r.spot.is_avail = True
-
 
         db.session.commit()
-        return {'msg': "Reservation updated!"}, 200
+        return {'msg': "Reservation updated"}, 200
 
     @jwt_required()
     def delete(self, reservation_id=None):
         if not reservation_id:
             return {'msg': "Reservation ID required"}, 400
+
         r = Reservation.query.get(reservation_id)
         if not r:
             return {'msg': "Reservation not found"}, 404
-        
-        id=get_jwt_identity()
-        user=User.query.get(id)
-        if not user.is_admin and r.user_id != id:
-            return {'msg': "You are not authorized to view this reservation"}, 403
+
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        if not user.is_admin and r.user_id != user_id:
+            return {'msg': "You are not authorized to delete this reservation"}, 403
+
         db.session.delete(r)
         db.session.commit()
-        return {'msg': "Reservation deleted!"}, 200
+        return {'msg': "Reservation deleted"}, 200
 
 
 class LoginResource(Resource):

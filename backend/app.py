@@ -75,7 +75,7 @@ if __name__ == "__main__":
             # Now generate spots for each lot
             for lot in lots:
                 for i in range(1, lot.number_of_spots + 1):
-                    spot = ParkingSpot(lot_id=lot.id, spot_number=i, is_avail=True)
+                    spot = ParkingSpot(lot_id=lot.id, spot_number=i)
                     db.session.add(spot)
 
             db.session.commit()
