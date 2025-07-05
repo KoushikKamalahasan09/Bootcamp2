@@ -12,7 +12,7 @@ const message = ref('')
 
 const fetchProfile = async () => {
   try {
-    const res = await fetch(`http://127.0.0.1:5000/users/${userId}`, {
+    const res = await fetch(`http://localhost:5000/users/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -32,7 +32,7 @@ const fetchProfile = async () => {
 
 const updateProfile = async () => {
   try {
-    const res = await fetch(`http://127.0.0.1:5000/users/${userId}`, {
+    const res = await fetch(`http://localhost:5000/users/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

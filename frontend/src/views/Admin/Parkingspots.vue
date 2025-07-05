@@ -19,7 +19,7 @@ const editSpotData = ref({
 // Fetch spots for a specific lot
 const fetchSpots = async () => {
   try {
-    const res = await fetch(`http://127.0.0.1:5000/spots?lot_id=${lotId}`, {
+    const res = await fetch(`http://localhost:5000/spots?lot_id=${lotId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     const data = await res.json()
@@ -40,7 +40,7 @@ const openEditModal = (spot) => {
 // Submit spot update
 const submitEdit = async () => {
   try {
-    const res = await fetch(`http://127.0.0.1:5000/spots/${editSpotData.value.id}`, {
+    const res = await fetch(`http://localhost:5000/spots/${editSpotData.value.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ const deleteSpot = async (spotId) => {
   if (!confirm("Are you sure you want to delete this spot?")) return
 
   try {
-    const res = await fetch(`http://127.0.0.1:5000/spots/${spotId}`, {
+    const res = await fetch(`http://localhost:5000/spots/${spotId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` }
     })

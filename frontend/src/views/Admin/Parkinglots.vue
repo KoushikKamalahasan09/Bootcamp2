@@ -11,7 +11,7 @@ const token = localStorage.getItem('token')
 // Fetch all parking lots
 const fetchLots = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:5000/lots', {
+    const response = await fetch('http://localhost:5000/lots', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -40,7 +40,7 @@ const deleteLot = async (lotId) => {
   if (!confirmDelete) return
 
   try {
-    const response = await fetch(`http://127.0.0.1:5000/lots/${lotId}`, {
+    const response = await fetch(`http://localhost:5000/lots/${lotId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
@@ -79,7 +79,7 @@ const openEditModal = (lot) => {
 
 const submitEdit = async () => {
   try {
-    const response = await fetch(`http://127.0.0.1:5000/lots/${editLotData.value.id}`, {
+    const response = await fetch(`http://localhost:5000/lots/${editLotData.value.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

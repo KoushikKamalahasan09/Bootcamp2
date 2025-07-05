@@ -11,7 +11,7 @@ const token = localStorage.getItem('token')
 // Fetch all parking user
 const fetchUsers = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:5000/users', {
+    const response = await fetch('http://localhost:5000/users', {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -39,7 +39,7 @@ const deleteUser = async (userId) => {
   if (!confirmDelete) return
 
   try {
-    const response = await fetch(`http://127.0.0.1:5000/users/${userId}`, {
+    const response = await fetch(`http://localhost:5000/users/${userId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`

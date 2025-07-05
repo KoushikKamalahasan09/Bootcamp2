@@ -19,7 +19,7 @@ const handleSubmit = () => {
 
   console.log('Submitting lot data:', lotData)
 
-  fetch('http://127.0.0.1:5000/lots', {
+  fetch('http://localhost:5000/lots', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

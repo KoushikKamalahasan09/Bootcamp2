@@ -52,7 +52,7 @@ export default {
 
       console.log('Logging in with:', this.email, this.password);
       const postData={"email": this.email, "password": this.password};
-      fetch('http://127.0.0.1:5000/login', {
+      fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
