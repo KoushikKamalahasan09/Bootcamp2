@@ -74,6 +74,7 @@ export default {
         console.log('Login successful:', data);
         // Redirect to dashboard page or handle successful login
         localStorage.setItem('token', data.token); // Store JWT token
+        localStorage.setItem('user_id', data.user_id); // Store user ID
 
         if (data.isadmin){
           this.$router.push('/admin/dashboard'); // Redirect to admin dashboard

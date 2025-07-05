@@ -335,7 +335,7 @@ class LoginResource(Resource):
         if user.passhash != password:
             return {'msg': "Invalid password"}, 401
         token=create_access_token(identity=str(user.id))
-        return {"msg": "Login successful",'token': token,"isadmin":user.is_admin}, 200
+        return {"msg": "Login successful",'token': token,"user_id":user.id,"isadmin":user.is_admin}, 200
         
 
 
