@@ -64,26 +64,6 @@ const submitEdit = async () => {
     alert("Error updating spot")
   }
 }
-
-// Delete spot
-const deleteSpot = async (spotId) => {
-  if (!confirm("Are you sure you want to delete this spot?")) return
-
-  try {
-    const res = await fetch(`http://localhost:5000/spots/${spotId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const data = await res.json()
-    if (res.ok) {
-      spots.value = spots.value.filter(s => s.id !== spotId)
-    } else {
-      alert(data.msg || "Failed to delete")
-    }
-  } catch (err) {
-    console.error(err)
-  }
-}
 </script>
 
 <template>
@@ -97,7 +77,6 @@ const deleteSpot = async (spotId) => {
         <p><strong>Spot Number:</strong> {{ spot.spot_number }}</p>
         <div class="btn-group">
           <button class="edit" @click="() => openEditModal(spot)">Update</button>
-          <button class="delete" @click="() => deleteSpot(spot.id)">Delete</button>
         </div>
       </div>
     </div>
@@ -118,7 +97,6 @@ const deleteSpot = async (spotId) => {
 </template>
 
 <style scoped>
-/* Same styles as before — just removed .add-btn and modal-card for Add */
 .container {
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -167,19 +145,6 @@ button.edit {
 
 button.edit:hover {
   background-color: #0069d9;
-}
-
-button.delete {
-  background-color: #dc3545;
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button.delete:hover {
-  background-color: #c82333;
 }
 
 button.cancel {
