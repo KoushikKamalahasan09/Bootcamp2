@@ -60,17 +60,7 @@ const handleSubmit = () => {
   <main class="admin-dashboard">
     <h1>🛠️ Admin Dashboard</h1>
 
-    <section class="links">
-      <p>Welcome, Admin! Use the links below to manage your account:</p>
-      <ul>
-        <li>
-          👉 <RouterLink to="/admin/profile">View Profile</RouterLink>
-          👉 <RouterLink to="/admin/parkinglots">View Parking lots</RouterLink>
-          👉 <RouterLink to="/admin/user_list">View all Users</RouterLink>
 
-        </li>
-      </ul>
-    </section>
 
     <section class="form-section">
       <h2>🚗 Register a Parking Lot</h2>

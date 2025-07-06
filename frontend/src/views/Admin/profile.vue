@@ -67,8 +67,7 @@ onMounted(fetchProfile)
     <h1 class="text-2xl font-bold mb-4 text-center">Admin Profile</h1>
 
     <div v-if="message" class="text-center text-red-600 mb-4">{{ message }}</div>
-    <router-link to="/admin/dashboard"
-      class="text-blue-600 hover:underline mb-4 inline-block">Back to Dashboard</router-link>
+
 
     <!-- Show profile only if data is ready -->
     <div v-if="admin && admin.username && !editing">

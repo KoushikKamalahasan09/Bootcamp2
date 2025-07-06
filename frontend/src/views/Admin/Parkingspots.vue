@@ -23,6 +23,7 @@ const fetchSpots = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     const data = await res.json()
+    console.log("Fetched spots:", data.spots)
     spots.value = data.spots || []
   } catch (err) {
     console.error("Failed to fetch spots:", err)
@@ -68,7 +69,7 @@ const submitEdit = async () => {
 
 <template>
   <div class="container">
-    <router-link to="/admin/parkinglots" class="back-link">← Back to Parking Lots</router-link>
+
 
     <h1>Parking Spots for Lot {{ lotId }}</h1>
 
@@ -77,7 +78,7 @@ const submitEdit = async () => {
         <p><strong>Spot Number:</strong> {{ spot.spot_number }}</p>
 
         <!-- Reservation Details -->
-        <div v-if="spot.reservations.length > 0" class="reservation-info">
+        <div v-if="spot.reservations && spot.reservations.length > 0" class="reservation-info">
             <div v-for="(r, index) in spot.reservations" :key="index">
               <p><strong>Reserved By:</strong> {{ r.username }} (ID: {{ r.user_id }})</p>
               <p><strong>From:</strong> {{ new Date(r.start_time).toLocaleString() }}</p>

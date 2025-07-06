@@ -134,7 +134,7 @@ class Parkinglots(Resource):
             db.session.add(spot)
         db.session.commit()
         cache.delete('parking_lots_list')  # Clear cache after adding a new parking lot
-        cache.delete('parking_spots')  # Clear cache for parking spots as well
+        
         return {'msg': "Successfully created parking lot!"}
     
     @jwt_required()
@@ -187,7 +187,7 @@ class Parkinglots(Resource):
         db.session.commit()
         lot=ParkingLot.query.get(lot_id)
         cache.delete('parking_lots_list')  # Clear cache after updating parking lot information
-        cache.delete('parking_spots')  # Clear cache for parking spots as well
+        
 
         return {"msg": "Updated parking lot Information", "Lot": lot.to_dict()}, 200
         
@@ -212,7 +212,7 @@ class Parkinglots(Resource):
 class ParkingSpots(Resource):
 
     @jwt_required()
-    @cache.cached(timeout=600, key_prefix='parking_spots')
+    
     def get(self, spot_id=None):
         if spot_id:
             spot = ParkingSpot.query.get(spot_id)
@@ -301,7 +301,7 @@ class ParkingSpots(Resource):
         spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
         db.session.add(spot)
         db.session.commit()
-        cache.delete('parking_spots')  # Clear cache after adding a new parking spot
+        
 
         return {'msg': "Parking spot created", 'spot_id': spot.id}, 201
 
@@ -325,7 +325,7 @@ class ParkingSpots(Resource):
             spot.lot_id = data['lot_id']
 
         db.session.commit()
-        cache.delete('parking_spots')  # Clear cache after updating parking spot information
+        
         return {'msg': "Spot updated"}, 200
 
     @jwt_required()
@@ -353,7 +353,7 @@ class ParkingSpots(Resource):
         new_spot = ParkingSpot(lot_id=lot_id, spot_number=spot_number)
         db.session.add(new_spot)
         db.session.commit()
-        cache.delete('parking_spots')  # Clear cache after deleting and re-creating parking spot
+        
 
         return {
             'msg': f"Spot {spot_number} deleted and re-created successfully!",

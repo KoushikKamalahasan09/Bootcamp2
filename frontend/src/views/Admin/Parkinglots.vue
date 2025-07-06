@@ -114,12 +114,7 @@ const submitEdit = async () => {
   <div style="padding: 2rem; font-family: Arial, sans-serif;">
     <h1 style="margin-bottom: 1rem;">All Parking Lots</h1>
 
-    <router-link
-      to="/admin/dashboard"
-      style="display: inline-block; margin-bottom: 1.5rem; color: #007bff; text-decoration: none;"
-    >
-      ← Back to Dashboard
-    </router-link>
+
 
     <div v-if="lots.length > 0">
       <div

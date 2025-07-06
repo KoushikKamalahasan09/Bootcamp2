@@ -5,15 +5,15 @@ import { Chart, registerables } from 'chart.js'
 
 Chart.register(...registerables)
 
-const route = useRoute()
 const token = localStorage.getItem('token')
-const userId = route.params.id
+const route = useRoute()
+const userId = Number(route.params.user_id)
 
 const reservations = ref([])
 const totalHours = ref(0)
 const totalAmount = ref(0)
-const username = ref('')
 const chartInstance = ref(null)
+const username = ref('')
 
 const fetchReservations = async () => {
   try {
@@ -21,10 +21,9 @@ const fetchReservations = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     const data = await res.json()
-    const all = data.reservations || []
 
-    // Filter only this user
-    reservations.value = all.filter(r => r.user_id == userId)
+    reservations.value = data.reservations?.filter(r => r.user_id === userId) || []
+
     if (reservations.value.length > 0) {
       username.value = reservations.value[0].user?.username || `User ${userId}`
     }
@@ -38,7 +37,6 @@ const fetchReservations = async () => {
 
 const calculateStats = () => {
   let hours = 0, amount = 0
-
   reservations.value.forEach(r => {
     const start = new Date(r.parking_timestamp)
     const end = new Date(r.leaving_timestamp)
