@@ -65,15 +65,7 @@ const deleteUser = async (userId) => {
 
 <template>
   <div style="padding: 2rem; font-family: Arial, sans-serif;">
-    <h1 style="margin-bottom: 1rem;">All Users</h1>
-
-    <!-- Back to Dashboard Link -->
-    <router-link
-      to="/admin/dashboard"
-      style="display: inline-block; margin-bottom: 1.5rem; color: #007bff; text-decoration: none;"
-    >
-      ← Back to Dashboard
-    </router-link>
+    <h1 style="margin-bottom: 1rem;">All Users</h1>    
 
     <!-- Parking User Cards -->
     <div v-if="users.length > 0">
@@ -87,8 +79,14 @@ const deleteUser = async (userId) => {
 
         <!-- Buttons -->
         <div style="margin-top: 1rem;">
-          <button style="margin-right: 0.5rem;" @click="deleteUser(user.id)">Delete User</button>
-        </div>
+            <button @click="deleteUser(user.id)">Delete User</button>
+            <router-link
+              :to="{ name: 'admin_user_summary', params: { user_id: user.id } }"
+              class="button-link"
+            >
+              View Summary
+            </router-link>
+          </div>
       </div>
     </div>
 
@@ -114,4 +112,23 @@ button {
 button:hover {
   background-color: #f0f0f0;
 }
+
+button,
+.button-link {
+  background-color: #ffffff;
+  border: 1px solid #bbb;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+  color: #333;
+  margin-left: 0.5rem;
+}
+
+button:hover,
+.button-link:hover {
+  background-color: #f0f0f0;
+}
+
 </style>

@@ -5,6 +5,9 @@ from flask_restful import Resource, Api
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
 from controllers import Parkinglots,UsersResource,ParkingSpots,Reservations,LoginResource,RegisterResource
 from controllers import cache
+from datetime import datetime,timedelta
+
+now =datetime.now()
 
 # backend/app.py
 
@@ -32,7 +35,7 @@ db.init_app(app)
 
 
 api.add_resource(Parkinglots, '/lots', '/lots/<lot_id>')
-api.add_resource(UsersResource, '/users', '/users/<user_id>')
+api.add_resource(UsersResource, '/users', '/users/<user_id>','/users/count')
 api.add_resource(ParkingSpots, '/spots', '/spots/<spot_id>')
 api.add_resource(Reservations, '/reservations', '/reservations/<reservation_id>')
 api.add_resource(LoginResource, '/login')
@@ -62,10 +65,10 @@ if __name__ == "__main__":
             ]
 
             lots = [
-                ParkingLot(location_name='Lot 1', price_per_hour=1000, address='123 Main St', pin_code='123456', number_of_spots=10),
-                ParkingLot(location_name='Lot 2', price_per_hour=500, address='1234 Main St', pin_code='123457', number_of_spots=12),
-                ParkingLot(location_name='Lot 3', price_per_hour=1500, address='1235 Main St', pin_code='123458', number_of_spots=14),
-                ParkingLot(location_name='Lot 4', price_per_hour=750, address='1236 Main St', pin_code='123459', number_of_spots=20)
+                ParkingLot(location_name='Lot 1', price_per_hour=1000, address='123 Main St', pin_code='123456', number_of_spots=4),
+                ParkingLot(location_name='Lot 2', price_per_hour=500, address='1234 Main St', pin_code='123457', number_of_spots=5),
+                ParkingLot(location_name='Lot 3', price_per_hour=1500, address='1235 Main St', pin_code='123458', number_of_spots=6),
+                ParkingLot(location_name='Lot 4', price_per_hour=750, address='1236 Main St', pin_code='123459', number_of_spots=7)
             ]
 
             db.session.add(admin)
@@ -80,5 +83,37 @@ if __name__ == "__main__":
                     db.session.add(spot)
 
             db.session.commit()
+            
+            Res = [
+                    Reservation(user_id=2, spot_id=3,
+                                parking_timestamp=now + timedelta(hours=1),
+                                leaving_timestamp=now + timedelta(hours=3)),
+
+                    Reservation(user_id=3, spot_id=18,
+                                parking_timestamp=now + timedelta(hours=2),
+                                leaving_timestamp=now + timedelta(hours=4)),
+
+                    Reservation(user_id=4, spot_id=20,
+                                parking_timestamp=now + timedelta(hours=3),
+                                leaving_timestamp=now + timedelta(hours=5)),
+
+                    Reservation(user_id=2, spot_id=15,
+                                parking_timestamp=now + timedelta(hours=4),
+                                leaving_timestamp=now + timedelta(hours=6)),
+
+                    Reservation(user_id=3, spot_id=13,
+                                parking_timestamp=now + timedelta(hours=5),
+                                leaving_timestamp=now + timedelta(hours=7)),
+
+                    Reservation(user_id=4, spot_id=22,
+                                parking_timestamp=now + timedelta(hours=6),
+                                leaving_timestamp=now + timedelta(hours=8)),
+
+                    Reservation(user_id=2, spot_id=8,
+                                parking_timestamp=now + timedelta(hours=7),
+                                leaving_timestamp=now + timedelta(hours=9))]
+            db.session.add_all(Res)
+            db.session.commit()    
+            
 
         app.run(debug=True)

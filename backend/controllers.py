@@ -41,6 +41,15 @@ class UsersResource(Resource):
         return {'msg': "Successfully created user!"}
     
     @jwt_required()
+    def _get_user_count(self):
+        user = User.query.get(get_jwt_identity())
+        if not user or not user.is_admin:
+            return {'msg': 'Unauthorized'}, 403
+
+        count = User.query.count()
+        return {'total_users': count}
+    
+    @jwt_required()
     def put(self, user_id=None):
         if not user_id:
             return {'msg': "User id is required to update!"}, 400
@@ -243,7 +252,33 @@ class ParkingSpots(Resource):
             return {'msg': f"Available spots in time range", 'spots': result}, 200
 
         # No time filter, return all spots
-        return {'msg': "All spots", 'spots': [s.to_dict() for s in spots]}, 200
+        now = datetime.now()
+        result = []
+
+        for spot in spots:
+            spot_data = spot.to_dict()
+
+            active_res = Reservation.query.filter(
+                Reservation.spot_id == spot.id,
+                Reservation.is_active == True,
+                Reservation.parking_timestamp <= now,
+                Reservation.leaving_timestamp >= now
+            ).all()
+
+            if active_res:
+                spot_data['reservation'] =[ {
+                    'user_id': r.user_id,
+                    'username': r.user.username,
+                    'start_time': r.parking_timestamp.isoformat(),
+                    'end_time': r.leaving_timestamp.isoformat()
+                }for r in active_res]
+            else:
+                spot_data['reservation'] = None
+
+            result.append(spot_data)
+
+        return {'msg': "All spots", 'spots': result}, 200
+
 
     @jwt_required()
     def post(self):

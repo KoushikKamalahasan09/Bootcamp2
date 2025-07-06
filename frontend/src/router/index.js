@@ -70,6 +70,21 @@ const router = createRouter({
       path:'/reservations',
       name: 'user_reservations',
       component: () => import('../views/User/reservations.vue'), // Lazy-loaded User Reservations
+    },
+    {
+      path:'/summary',
+      name: 'user_summary',
+      component: () => import('../views/User/summary.vue'), // Lazy-loaded User Summary
+    },
+    {
+      path:'/admin/summary',
+      name: 'admin_summary',
+      component: () => import('../views/Admin/summary.vue'), // Lazy-loaded Admin Summary
+    },
+    {
+      path:'/admin/user/:user_id/summary',
+      name: 'admin_user_summary',
+      component: () => import('../views/Admin/user_summary.vue'), // Lazy-loaded Admin User Summary
     }
 
     /*{

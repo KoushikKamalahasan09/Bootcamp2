@@ -75,10 +75,26 @@ const submitEdit = async () => {
     <div class="grid">
       <div v-for="spot in spots" :key="spot.id" class="card">
         <p><strong>Spot Number:</strong> {{ spot.spot_number }}</p>
+
+        <!-- Reservation Details -->
+        <div v-if="spot.reservations.length > 0" class="reservation-info">
+            <div v-for="(r, index) in spot.reservations" :key="index">
+              <p><strong>Reserved By:</strong> {{ r.username }} (ID: {{ r.user_id }})</p>
+              <p><strong>From:</strong> {{ new Date(r.start_time).toLocaleString() }}</p>
+              <p><strong>To:</strong> {{ new Date(r.end_time).toLocaleString() }}</p>
+              <hr v-if="index < spot.reservations.length - 1" />
+            </div>
+          </div>
+          <div v-else class="reservation-info available">
+            <p><em>Currently Available</em></p>
+          </div>
+
+
         <div class="btn-group">
           <button class="edit" @click="() => openEditModal(spot)">Update</button>
         </div>
-      </div>
+</div>
+
     </div>
 
     <!-- Edit Modal -->
@@ -214,4 +230,18 @@ button.save:hover {
   color: #0056b3;
   text-decoration: underline;
 }
+
+.reservation-info {
+  background-color: #f1f3f5;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.reservation-info.available {
+  background-color: #e6ffed;
+  color: #155724;
+}
+
 </style>
