@@ -12,7 +12,6 @@ cache=Cache()
 
 class UsersResource(Resource):
     @jwt_required()
-    #@cache.cached(timeout=600,key_prefix='users_list')
     def get(self, user_id=None):
         if user_id:
             user = User.query.get(user_id)
@@ -23,9 +22,7 @@ class UsersResource(Resource):
     
     @cache.cached(timeout=600, key_prefix='users_list')
     def _get_all_users(self):
-        #print("🔁 _get_all_users() called")
         users = [user.to_dict() for user in User.query.all()]
-        #print("✅ Returning", len(users), "users")
         return {"msg": "All users", "users": users}, 200
     
     def post(self):
@@ -340,7 +337,7 @@ class Reservations(Resource):
             r = Reservation.query.get(reservation_id)
             if not r:
                 return {'msg': "Reservation not found"}, 404
-            if not user.is_admin and r.user_id != user_id:
+            if not (user.is_admin or r.user_id == int(user_id)):
                 return {'msg': "You are not authorized to view this reservation"}, 403
             return {
                 'msg': "Reservation found",
@@ -419,30 +416,55 @@ class Reservations(Resource):
 
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
-        if not user.is_admin and r.user_id != user_id:
+
+        # ✅ Fixed authorization check: allow admin OR user owning the reservation
+        if not (user.is_admin or r.user_id == int(user_id)):
             return {'msg': "You are not authorized to modify this reservation"}, 403
 
         data = request.get_json()
 
-        # Update timestamps
-        if 'leaving_timestamp' in data:
-            try:
-                r.leaving_timestamp = datetime.fromisoformat(data['leaving_timestamp'])
-            except ValueError:
-                return {'msg': "Invalid leaving_timestamp format"}, 400
+        # Parse and validate timestamps
+        new_start = r.parking_timestamp
+        new_end = r.leaving_timestamp
 
         if 'parking_timestamp' in data:
             try:
-                r.parking_timestamp = datetime.fromisoformat(data['parking_timestamp'])
+                new_start = datetime.fromisoformat(data['parking_timestamp'])
             except ValueError:
                 return {'msg': "Invalid parking_timestamp format"}, 400
 
-        # Update status
+        if 'leaving_timestamp' in data:
+            try:
+                new_end = datetime.fromisoformat(data['leaving_timestamp'])
+            except ValueError:
+                return {'msg': "Invalid leaving_timestamp format"}, 400
+
+        if new_start >= new_end:
+            return {'msg': "Start time must be before end time"}, 400
+
+        # ✅ Overlap check (excluding current reservation)
+        overlapping = Reservation.query.filter(
+            Reservation.spot_id == r.spot_id,
+            Reservation.id != r.id,  # Exclude self
+            Reservation.is_active == True,
+            Reservation.parking_timestamp < new_end,
+            Reservation.leaving_timestamp > new_start
+        ).first()
+
+        if overlapping:
+            return {'msg': "This spot is already reserved during that time."}, 409
+
+        # Save updated times
+        r.parking_timestamp = new_start
+        r.leaving_timestamp = new_end
+
+        # Optional: toggle status if provided
         if 'is_active' in data:
             r.is_active = data['is_active']
 
         db.session.commit()
-        return {'msg': "Reservation updated"}, 200
+        return {'msg': "Reservation updated successfully"}, 200
+
 
     @jwt_required()
     def delete(self, reservation_id=None):
@@ -455,13 +477,26 @@ class Reservations(Resource):
 
         user_id = get_jwt_identity()
         user = User.query.get(user_id)
-        if not user.is_admin and r.user_id != user_id:
+        print(f"Logged in user_id: {user_id}, Reservation user_id: {r.user_id}")
+
+
+        # 🔒 Permission check (same as put)
+        if not (user.is_admin or r.user_id == int(user_id)):
             return {'msg': "You are not authorized to delete this reservation"}, 403
 
+        now = datetime.now()
+
+        # 🔁 If the reservation has already started, don't delete — just update end time
+        if r.parking_timestamp <= now:
+            r.leaving_timestamp = now
+            r.is_active = False
+            db.session.commit()
+            return {'msg': "Reservation shortened to end now (cannot delete past reservations)"}, 200
+
+        # 🗑 If the reservation is in the future, safe to delete
         db.session.delete(r)
         db.session.commit()
-        return {'msg': "Reservation deleted"}, 200
-
+        return {'msg': "Reservation deleted successfully"}, 200
 
 class LoginResource(Resource):
     def post(self):

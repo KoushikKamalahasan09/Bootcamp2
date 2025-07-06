@@ -48,8 +48,8 @@ const logout = () => {
         <template v-else>
           <li><router-link to="/dashboard">Dashboard</router-link></li>
           <li><router-link to="/profile">Profile</router-link></li>
+          <li><router-link to="/reservations">Current Reservations</router-link></li>
           <!-- <li><router-link to="/summary">Summary</router-link></li> -->
-          <!-- <li><router-link to="/history">History</router-link></li> -->
         </template>
         <li>
           <button @click="logout" class="logout-btn">Logout</button>

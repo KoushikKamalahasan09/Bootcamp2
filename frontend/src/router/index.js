@@ -65,6 +65,11 @@ const router = createRouter({
       path:'/parkinglots/:lot_id',
       name: 'user_parking_lot',
       component: () => import('../views/User/lot_details.vue'), // Lazy-loaded User Parking Lot
+    },
+    {
+      path:'/reservations',
+      name: 'user_reservations',
+      component: () => import('../views/User/reservations.vue'), // Lazy-loaded User Reservations
     }
 
     /*{
