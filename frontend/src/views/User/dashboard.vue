@@ -63,7 +63,9 @@ onMounted(() => {
 
         <!-- Buttons -->
         <div style="margin-top: 1rem;">
-          <button style="margin-right: 0.5rem;" @click="() => {}">Open Lot</button>
+          <router-link :to="`/parkinglots/${lot.id}`">
+            <button style="margin-right: 0.5rem;">Open Lot</button>
+          </router-link>
         </div>
       </div>
     </div>

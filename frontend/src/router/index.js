@@ -60,6 +60,11 @@ const router = createRouter({
       path:'/admin/user_list',
       name: 'admin_user_list',
       component: () => import('../views/Admin/list_users.vue'), // Lazy-loaded Admin User List
+    },
+    {
+      path:'/parkinglots/:lot_id',
+      name: 'user_parking_lot',
+      component: () => import('../views/User/lot_details.vue'), // Lazy-loaded User Parking Lot
     }
 
     /*{
