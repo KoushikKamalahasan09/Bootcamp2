@@ -7,6 +7,8 @@ from datetime import datetime
 from models import db, User,ParkingLot, ParkingSpot, Reservation
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
 from flask_caching import Cache
+from celery_app import generate_csv_task
+import os
 
 cache=Cache()
 
@@ -566,3 +568,50 @@ class RegisterResource(Resource):
         user = User(email=email, username=username, passhash=password)
         db.session.add(user); db.session.commit()
         return {'msg': "Successfully Registered!"}, 200     
+    
+
+
+class ReportGenerate(Resource):
+    #@jwt_required()
+    def get(self, user_id=None):
+        if user_id is None:
+            return {'msg': "User ID is required to generate report"}, 400 
+        
+        os.makedirs(os.path.join('static', str(user_id)), exist_ok=True)
+        data = []
+        print(user_id)
+        if user_id == 1:
+            
+            # Admin — export all reservations
+            reservations = Reservation.query.all()
+            print(reservations)
+            if not reservations:
+                return {'msg': "No reservations exist in the system"}, 404
+            
+        else:
+           # Normal user — only export their reservations
+            reservations = Reservation.query.filter_by(user_id=user_id).all()
+            print(reservations)
+            if not reservations:
+                return {'msg': "No reservations found for this user"}, 404
+        # Build data
+        for r in reservations:
+            data.append({
+                'username': r.user.username,
+                'spot_number': r.spot.spot_number,
+                'lot_location': r.spot.lot.location_name,
+                'pincode': r.spot.lot.pin_code,
+                'address': r.spot.lot.address,
+                'parking_timestamp': r.parking_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                'leaving_timestamp': r.leaving_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                'parking_cost': round(r.calculate_cost(), 2),
+                'created_at': r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else '',
+                'updated_at': r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else ''
+            })
+
+        generate_csv_task.delay(data, user_id)
+
+        return {
+            'msg': "Reservation report generation started.",
+            'url': f"http://127.0.0.1:5000/static/{user_id}/reservations_report.csv"
+        }, 202

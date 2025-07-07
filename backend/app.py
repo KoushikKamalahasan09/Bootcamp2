@@ -3,7 +3,7 @@ from flask_cors import CORS
 from models import db,User,ParkingLot,ParkingSpot,Reservation
 from flask_restful import Resource, Api
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
-from controllers import Parkinglots,UsersResource,ParkingSpots,Reservations,LoginResource,RegisterResource
+from controllers import Parkinglots,UsersResource,ParkingSpots,Reservations,LoginResource,RegisterResource,ReportGenerate
 from controllers import cache
 from datetime import datetime,timedelta
 
@@ -40,6 +40,7 @@ api.add_resource(ParkingSpots, '/spots', '/spots/<spot_id>')
 api.add_resource(Reservations, '/reservations', '/reservations/<reservation_id>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(RegisterResource, '/register')
+api.add_resource(ReportGenerate, '/generate_report', '/generate_report/<int:user_id>')
 
 
 app.config['CACHE_TYPE'] = 'RedisCache'
@@ -115,5 +116,5 @@ if __name__ == "__main__":
             db.session.add_all(Res)
             db.session.commit()    
             
-
+        
         app.run(debug=True)

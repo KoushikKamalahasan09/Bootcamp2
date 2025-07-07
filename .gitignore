@@ -3,6 +3,8 @@ __pycache__/
 /backend/__pycache__/
 *.py[cod]
 *$py.class
+/backend/static
+
 
 # Virtual environment
 venv/
