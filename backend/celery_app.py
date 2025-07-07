@@ -50,6 +50,6 @@ celery.conf.beat_schedule = {
     'daily_remainders_mails': {
         'task': 'celery_app.daily_remainders',
         #'schedule':timedelta(seconds=10),
-        'schedule': crontab(day_of_month=7,hour=13, minute=21),  # Every day at 8 AM
+        'schedule': crontab(day_of_month=1,hour=9, minute=0),  # Every day at 8 AM
         }
     }
