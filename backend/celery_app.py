@@ -5,6 +5,7 @@ import time
 from datetime import timedelta
 from app import app
 
+
 from models import User
 from mail import send_mail
 
@@ -33,19 +34,22 @@ def generate_csv_task(data, user_id):
 
     return filename
 
+
+
 @celery.task
 def daily_remainders():
-
+    
     with app.app_context():
         users = User.query.all()
         for user in users:
-            send_mail(user.email, "Daily Reminder", "This is your daily reminder to check your parking reservations.") 
+            if user.id != 1:  # Skip the admin user
+                send_mail(user.email, "Daily Reminder", "This is your daily reminder to check your parking reservations.") 
             
 
 celery.conf.beat_schedule = {
     'daily_remainders_mails': {
         'task': 'celery_app.daily_remainders',
-        'schedule':timedelta(seconds=10),
-        #'schedule': crontab(hour=8, minute=0),  # Every day at 8 AM
+        #'schedule':timedelta(seconds=10),
+        'schedule': crontab(day_of_month=7,hour=13, minute=21),  # Every day at 8 AM
         }
     }

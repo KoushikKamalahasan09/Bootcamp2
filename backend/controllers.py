@@ -7,7 +7,7 @@ from datetime import datetime
 from models import db, User,ParkingLot, ParkingSpot, Reservation
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity,create_access_token
 from flask_caching import Cache
-from celery_app import generate_csv_task
+
 import os
 
 cache=Cache()
@@ -574,6 +574,7 @@ class RegisterResource(Resource):
 class ReportGenerate(Resource):
     #@jwt_required()
     def get(self, user_id=None):
+        
         if user_id is None:
             return {'msg': "User ID is required to generate report"}, 400 
         
@@ -608,7 +609,7 @@ class ReportGenerate(Resource):
                 'created_at': r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else '',
                 'updated_at': r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else ''
             })
-
+        from celery_app import generate_csv_task
         generate_csv_task.delay(data, user_id)
 
         return {

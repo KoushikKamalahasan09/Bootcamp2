@@ -6,6 +6,10 @@ __pycache__/
 /backend/static
 
 
+#celery beat schedules:
+
+/backend/celerybeat-schedule*
+
 # Virtual environment
 venv/
 env/
