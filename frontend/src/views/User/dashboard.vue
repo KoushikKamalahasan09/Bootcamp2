@@ -39,13 +39,7 @@ onMounted(() => {
   <div style="padding: 2rem; font-family: Arial, sans-serif;">
     <h1 style="margin-bottom: 1rem;">All Parking Lots</h1>
 
-    <!-- Back to Dashboard Link -->
-    <router-link
-      to="/profile"
-      style="display: inline-block; margin-bottom: 1.5rem; color: #007bff; text-decoration: none;"
-    >
-      Profile
-    </router-link>
+
     
 
     <!-- Parking Lot Cards -->

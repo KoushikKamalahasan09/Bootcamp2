@@ -96,7 +96,7 @@ onMounted(fetchSpots)
 
 <template>
   <div class="container">
-    <router-link to="/dashboard" class="back-link">← Back to Dashboard</router-link>
+
     <h1>Reserve a Spot (Lot {{ lotId }})</h1>
 
     <div class="grid">

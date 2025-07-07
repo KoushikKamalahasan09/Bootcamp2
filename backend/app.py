@@ -112,7 +112,19 @@ if __name__ == "__main__":
 
                     Reservation(user_id=2, spot_id=8,
                                 parking_timestamp=now + timedelta(hours=7),
-                                leaving_timestamp=now + timedelta(hours=9))]
+                                leaving_timestamp=now + timedelta(hours=9)),
+                    Reservation(user_id=2, spot_id=7,
+                                parking_timestamp=now - timedelta(days=33,hours=8),
+                                leaving_timestamp=now - timedelta(days=26,hours=10)),
+                    Reservation(user_id=3, spot_id=14,
+                                parking_timestamp=now - timedelta(days=30,hours=8),
+                                leaving_timestamp=now - timedelta(days=20,hours=10)),
+                    Reservation(user_id=4, spot_id=2,
+                                parking_timestamp=now - timedelta(days=43,hours=8),
+                                leaving_timestamp=now - timedelta(days=30,hours=10)),
+                    Reservation(user_id=5, spot_id=19,
+                                parking_timestamp=now - timedelta(days=61,hours=8),
+                                leaving_timestamp=now - timedelta(days=37,hours=10))]
             db.session.add_all(Res)
             db.session.commit()    
             
